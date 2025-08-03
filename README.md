@@ -7,6 +7,7 @@ To start a local dev server, run the startdev.sh script like `sh startdev.sh`. Y
 ## Artist
 For use in your generative art project, you will need to include the embed script and have two elements: a canvas (which contains the art), and a button (when clicked will open a new window to collect name, address and payment info in order to complete the user flow). There's support for additional properties in the Lobby function's config. These get translated to merge variables for the Lob API to injest. When the button has been clicked a class named `disable` will be applied to the element and the listener for the click event will be removed. This will help prevent subsequent requests and allow the artist to conditionally style their button. Example below:
 
+
 ```html
 <!-- lobby stuff -->
 <!-- artwork must be on a canvas -->
