@@ -54,7 +54,7 @@ jobs:
     - name: Install embed dependencies
       run: |
         cd embed
-        npm install
+        npm ci
 
     - name: Run Grunt build
       env:
