@@ -1,0 +1,10 @@
+{
+    "require": {
+        "jacwright/restserver": "dev-master",
+        "stripe/stripe-php": "^10.4",
+        "lob/lob-php": "^4.2",
+        "aws/aws-sdk-php": "^3.263",
+        "vlucas/phpdotenv": "^5.5",
+        "mixpanel/mixpanel-php": "^2.11"
+    }
+}

@@ -1,0 +1,7 @@
+vendor
+.DS_Store
+.env*
+.domain-template-map.json
+notes*
+package-lock.json
+node_modules

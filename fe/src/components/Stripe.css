@@ -1,0 +1,80 @@
+.StripeElement{
+	background: white;
+	max-width: calc(800px - 40px);
+	margin: 0 auto;
+	padding: 20px;
+	box-sizing: border-box;
+	border: 1px solid rgb(204, 204, 204);
+	border-radius: 4px;
+}
+.stripecontainer{
+	max-width: 800px;
+	margin: 0 auto;
+	box-sizing: border-box;
+	padding: 20px;
+}
+.total{
+	margin: 0 auto;
+	text-align: left;
+	max-width: 800px;
+	padding: 20px 0px;
+}
+
+.stripeform button{
+	font-weight: bold;
+	border: 0;
+	outline: 0;
+	background: none;
+	font-size: 23px;
+	cursor: pointer;
+	display: inline-block;
+	margin: 20px auto 0px auto;
+	color: black;
+}
+.stripeform.verified button,
+.stripeform.verifying button{
+	cursor: default;
+}
+.stripeform button span{
+	margin-right: 8px;
+	display: inline-block;
+	vertical-align: middle;
+}
+.stripeform button svg{
+	transform: scale(1.25);
+	display: inline-block;
+	vertical-align: middle;
+}
+.stripeform button .tailspin{
+	transform: scale(0.75);
+}
+.stripeform button .tailspin path{
+	stroke: #000;
+}
+
+.stripeform button .checkmark{
+	width: 30px;
+	height: 30px;
+	margin: 0;
+}
+
+.stripeform #payment-message{
+	color: black;
+	margin: 0px 0px 20px 0px;
+	text-align: left;
+}
+
+.stripeform #payment-message a{
+	color: black;
+}
+
+.stripeform-promo{
+	width: 100%;
+	box-sizing: border-box;
+	padding: 10px;
+	outline: none;
+	margin-bottom: 5px;
+	font-size: 14px;
+	border: 1px solid rgb(204, 204, 204);
+	border-radius: 4px;
+}

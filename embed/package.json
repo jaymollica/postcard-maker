@@ -1,0 +1,19 @@
+{
+    "name": "lobby-embed",
+    "version": "1.0.0",
+    "description": "embed script build",
+    "main": "lobbySrc.js",
+    "scripts": {
+        "dev": "grunt dev",
+        "build": "grunt build"
+    },
+    "author": "https://zrrdigitalmedia.com",
+    "license": "MIT",
+    "devDependencies": {
+        "dotenv": "^10.0.0",
+        "grunt": "^1.3.0",
+        "grunt-contrib-uglify": "^5.2.2",
+        "grunt-contrib-watch": "^1.1.0",
+        "grunt-string-replace": "^1.3.1"
+    }
+}
