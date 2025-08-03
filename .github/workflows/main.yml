@@ -20,7 +20,7 @@ jobs:
     - name: Install FE dependencies
       run: |
         cd fe
-        npm install
+        npm ci
 
     - name: Run FE npm build
       env:
@@ -54,7 +54,7 @@ jobs:
     - name: Install embed dependencies
       run: |
         cd embed
-        npm i
+        npm ci
 
     - name: Run Grunt build
       env:

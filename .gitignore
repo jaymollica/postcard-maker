@@ -3,5 +3,5 @@ vendor
 .env*
 .domain-template-map.json
 notes*
-package-lock.json
+#package-lock.json
 node_modules
