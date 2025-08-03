@@ -20,7 +20,7 @@ jobs:
     - name: Install FE dependencies
       run: |
         cd fe
-        npm ci
+        npm install
 
     - name: Run FE npm build
       env:
