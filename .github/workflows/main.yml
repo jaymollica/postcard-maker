@@ -1,0 +1,101 @@
+name: Deploy to remote server
+
+on:
+  push:
+    branches:
+      - main # Replace with your preferred branch for deployment
+
+jobs:
+  deploy_fe:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14 # You can use your preferred Node.js version
+
+    - name: Install FE dependencies
+      run: |
+        cd fe
+        npm ci
+
+    - name: Run FE npm build
+      env:
+        PUBLIC_URL: ${{ vars.PUBLIC_URL }}
+        REACT_APP_BACKEND_URL: ${{ vars.REACT_APP_BACKEND_URL }}
+        REACT_APP_FRONTEND_URL: ${{ vars.REACT_APP_FRONTEND_URL }}
+        REACT_APP_FRONTEND_ORIGIN: ${{ vars.REACT_APP_FRONTEND_ORIGIN }}
+        REACT_APP_STRIPE_PUBLISHABLE_KEY: ${{ vars.REACT_APP_STRIPE_PUBLISHABLE_KEY }}
+      run: |
+        cd fe
+        npm run build
+
+    - name: Deploy FE public folder to remote server
+      env:
+        SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+      run: |
+        sudo apt-get install -y sshpass
+        sshpass -p $SSH_PASSWORD rsync -avz -e 'ssh -p 22 -o StrictHostKeyChecking=no' --progress fe/build/ u263008656@89.117.9.195:/home/u263008656/domains/sweetpost.art/public_html/mail
+
+  deploy_embed:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14 # You can use your preferred Node.js version
+
+    - name: Install embed dependencies
+      run: |
+        cd embed
+        npm install
+
+    - name: Run Grunt build
+      env:
+        FRONTEND_ORIGIN: ${{ vars.FRONTEND_ORIGIN }}
+        BACKEND_URL: ${{ vars.BACKEND_URL }}
+      run: |
+        cd embed
+        npm run build
+
+    - name: Deploy lobby.js to remote server
+      env:
+        SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+      run: |
+        sudo apt-get install -y sshpass
+        sshpass -p $SSH_PASSWORD scp -P 65002 -o StrictHostKeyChecking=no embed/lobby.js u263008656@89.117.9.195:/home/u263008656/domains/sweetpost.art/public_html/mail/embed
+
+  #sshpass -p $SSH_PASSWORD scp -P 22 -o StrictHostKeyChecking=no embed/lobby.js username@example.com:/var/www/html/postcards/embed
+
+  deploy_be:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1.1' # You can use your preferred PHP version
+        extensions: mbstring, ctype, iconv, pdo_mysql, dom, xml
+        coverage: none
+
+    - name: Install Composer dependencies
+      run: |
+        cd be
+        composer install --no-dev --optimize-autoloader
+
+    - name: Deploy BE files to remote server
+      env:
+        SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+      run: |
+        sudo apt-get install -y sshpass
+        sshpass -p $SSH_PASSWORD rsync -avz -e 'ssh -p 22 -o StrictHostKeyChecking=no' --progress be/index.php be/.htaccess u263008656@89.117.9.195:/home/u263008656/domains/sweetpost.art/public_html/mail/be/
+        sshpass -p $SSH_PASSWORD rsync -avz -e 'ssh -p 22 -o StrictHostKeyChecking=no' --progress be/vendor u263008656@89.117.9.195:/home/u263008656/domains/sweetpost.art/public_html/mail/be/
+        sshpass -p $SSH_PASSWORD rsync -avz -e 'ssh -p 22 -o StrictHostKeyChecking=no' --progress be/controllers u263008656@89.117.9.195:/home/u263008656/domains/sweetpost.art/public_html/mail/be/
