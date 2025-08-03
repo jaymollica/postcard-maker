@@ -13,4 +13,5 @@ header('Content-Disposition: inline');
 // Output the content of the JavaScript file
 echo $js_content;
 
+
 ?>
