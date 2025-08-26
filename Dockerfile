@@ -34,11 +34,22 @@ RUN npm run build
 # Stage 3: Final stage with PHP + Apache
 FROM php:8.1-apache
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql mysqli
+# Install system dependencies including git, unzip, and zip
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    zip \
+    libzip-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install PHP extensions including zip
+RUN docker-php-ext-install pdo pdo_mysql mysqli zip
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Allow Composer to run as root (needed for Docker builds)
+ENV COMPOSER_ALLOW_SUPERUSER=1
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
