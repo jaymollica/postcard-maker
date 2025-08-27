@@ -1,4 +1,4 @@
-# Lob Project
+# Postcard Project
 Allows for a generative artist to connect their project to a service that sends a physical postcard of an artwork. Artwork must be on a canvas and domain must be allowlisted. Uses Lob & Stripe to send the postcard and capture payment info, respectively.
 
 ## Dev
