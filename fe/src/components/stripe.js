@@ -67,7 +67,7 @@ const CheckoutForm = (props) => {
       const lobResponseDecoded = await lobResponse.json();
       
       if( lobResponseDecoded.url ){
-        setMessage(`Your payment was successful! You should receive an email with your receipt and order number.<br />Preview your postcard <a href="${lobResponseDecoded.url}" target="_blank">here</a>. Since each postcard is printed on demand, please allow 10-14 business days for arrival.<br />If you have any questions about this project or your order, please contact us at <a href="mailto:digital@pamm.org">digital@pamm.org</a>.`);
+        setMessage(`Your payment was successful! You should receive an email with your receipt and order number.<br />Preview your postcard <a href="${lobResponseDecoded.url}" target="_blank">here</a>. Since each postcard is printed on demand, please allow 10-14 business days for arrival.`);
       }
     
     } catch (error) {
