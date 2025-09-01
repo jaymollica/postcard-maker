@@ -38,7 +38,7 @@ jobs:
         SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
       run: |
         sudo apt-get install -y sshpass
-        sshpass -p $SSH_PASSWORD rsync -avz -e 'ssh -o StrictHostKeyChecking=no' --progress fe/build/ deploy@167.99.58.222:/var/www/html/fe
+        sshpass -p $SSH_PASSWORD rsync -avz -e 'ssh -o StrictHostKeyChecking=no' --progress fe/build/ deploy@167.99.58.222:/var/www/html/
 
   deploy_embed:
     runs-on: ubuntu-latest
