@@ -3,23 +3,10 @@ const FRONTEND_ORIGIN = '__FRONTEND_ORIGIN__';
 
 function Lobby({button, canvas,  ...optionalParams} = {}){
 
-	// Debug: Log what optionalParams are received
-    console.log('Lobby initialized with optionalParams:', optionalParams);
-
 	this._send = async function({canvas, nonce, optionalParams}){
 
 		// Store optionalParams as instance property
     	this.optionalParams = optionalParams;
-
-		// Debug: Log what we're about to send
-		alert(this.optionalParams.artworkTitle);
-		console.log('Artwork data being sent:', {
-			artworkTitle: this.optionalParams.artworkTitle,
-			artworkArtist: this.optionalParams.artworkArtist,
-			artworkYear: this.optionalParams.artworkYear,
-			userMessage: this.optionalParams.getMessage ? this.optionalParams.getMessage() : ''
-		});
-
 
 		canvas = canvas instanceof HTMLElement === false && typeof canvas === 'string' ? document.querySelector(canvas) : canvas;
 

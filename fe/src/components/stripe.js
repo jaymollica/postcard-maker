@@ -36,7 +36,7 @@ const CheckoutForm = (props) => {
     
     const urlSearchParams = new URLSearchParams(document.location.search);
     if( urlSearchParams.get('optionalParams') && urlSearchParams.get('optionalParams').length > 0 ){
-      const decodedOptionalParams = JSON.parse(atob(urlSearchParams.get('optionalParams')));
+      const decodedOptionalParams = JSON.parse(decodeURIComponent(urlSearchParams.get('optionalParams')));
       body.merge_variables = decodedOptionalParams;
     }
 
