@@ -15,7 +15,7 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 		if (typeof this.optionalParams.getMessage === 'function') {
 			const message = this.optionalParams.getMessage();
 			console.log('Current message from function:', message);
-			postData.userMessage = message;
+			this.optionalParams.userMessage = message;
 		}
 
 		canvas = canvas instanceof HTMLElement === false && typeof canvas === 'string' ? document.querySelector(canvas) : canvas;
