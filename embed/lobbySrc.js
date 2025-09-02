@@ -8,6 +8,9 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 
 	this._send = async function({canvas, nonce, optionalParams}){
 
+		// Store optionalParams as instance property
+    	this.optionalParams = optionalParams;
+
 		// Debug: Log what we're about to send
 		alert(this.optionalParams.artworkTitle);
 		console.log('Artwork data being sent:', {
