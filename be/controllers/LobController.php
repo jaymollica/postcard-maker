@@ -49,6 +49,35 @@ class LobController
                     
                     $merge_variables = $data->merge_variables ?? (object) array();
 
+                    // Add artwork metadata to merge variables  
+                    if (isset($data->artworkTitle)) {
+                        $merge_variables->artworkTitle = $data->artworkTitle;
+                    }
+                    if (isset($data->artworkArtist)) {
+                        $merge_variables->artworkArtist = $data->artworkArtist;
+                    }
+                    if (isset($data->artworkYear)) {
+                        $merge_variables->artworkYear = $data->artworkYear;
+                    }
+                    if (isset($data->artworkMuseum)) {
+                        $merge_variables->artworkMuseum = $data->artworkMuseum;
+                    }
+                    if (isset($data->objectId)) {
+                        $merge_variables->objectId = $data->objectId;
+                    }
+                    if (isset($data->userMessage) && !empty(trim($data->userMessage))) {
+                        $merge_variables->userMessage = trim($data->userMessage);
+                    }
+
+                    // Add museum code for URL generation
+                    $museumCodeMap = [
+                        'Cleveland Museum of Art' => 'cleveland',
+                        'Metropolitan Museum of Art' => 'met'
+                    ];
+                    if (isset($data->artworkMuseum) && isset($museumCodeMap[$data->artworkMuseum])) {
+                        $merge_variables->museumCode = $museumCodeMap[$data->artworkMuseum];
+                    }
+
                     // Replace YOUR_API_KEY with your actual API key.
                     $apiKey = $_ENV['LOB_API_KEY'];
 
