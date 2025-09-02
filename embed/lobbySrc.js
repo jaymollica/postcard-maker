@@ -5,12 +5,18 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 
 	this._send = async function({canvas, nonce, optionalParams}){
 
-		
-
 		// Store optionalParams as instance property
     	this.optionalParams = optionalParams;
 
-		alert(this.optionalParams.userMessage);
+		// Debug: Check what's available
+		console.log('Available optionalParams:', Object.keys(this.optionalParams));
+		console.log('getMessage function exists:', typeof this.optionalParams.getMessage === 'function');
+
+		if (typeof this.optionalParams.getMessage === 'function') {
+			const message = this.optionalParams.getMessage();
+			console.log('Current message from function:', message);
+			postData.userMessage = message;
+		}
 
 		canvas = canvas instanceof HTMLElement === false && typeof canvas === 'string' ? document.querySelector(canvas) : canvas;
 
