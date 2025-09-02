@@ -49,33 +49,21 @@ class LobController
                     
                     $merge_variables = $data->merge_variables ?? (object) array();
 
-                    // Add artwork metadata to merge variables  
-                    if (isset($data->artworkTitle)) {
+                    // Only add artwork data if it exists in the incoming data
+                    if (property_exists($data, 'artworkTitle')) {
                         $merge_variables->artworkTitle = $data->artworkTitle;
                     }
-                    if (isset($data->artworkArtist)) {
+                    if (property_exists($data, 'artworkArtist')) {
                         $merge_variables->artworkArtist = $data->artworkArtist;
                     }
-                    if (isset($data->artworkYear)) {
+                    if (property_exists($data, 'artworkYear')) {
                         $merge_variables->artworkYear = $data->artworkYear;
                     }
-                    if (isset($data->artworkMuseum)) {
+                    if (property_exists($data, 'artworkMuseum')) {
                         $merge_variables->artworkMuseum = $data->artworkMuseum;
                     }
-                    if (isset($data->objectId)) {
-                        $merge_variables->objectId = $data->objectId;
-                    }
-                    if (isset($data->userMessage) && !empty(trim($data->userMessage))) {
+                    if (property_exists($data, 'userMessage') && !empty(trim($data->userMessage))) {
                         $merge_variables->userMessage = trim($data->userMessage);
-                    }
-
-                    // Add museum code for URL generation
-                    $museumCodeMap = [
-                        'Cleveland Museum of Art' => 'cleveland',
-                        'Metropolitan Museum of Art' => 'met'
-                    ];
-                    if (isset($data->artworkMuseum) && isset($museumCodeMap[$data->artworkMuseum])) {
-                        $merge_variables->museumCode = $museumCodeMap[$data->artworkMuseum];
                     }
 
                     // Replace YOUR_API_KEY with your actual API key.
@@ -91,8 +79,6 @@ class LobController
                     $domain_vars = $domain_template_map[array_search($data->artistUrl, array_column($domain_template_map, 'url'))];
                     $front = $domain_vars->front_template ?? $_ENV['LOB_FRONT_TEMPLATE_DEFAULT'];
                     $back = $domain_vars->back_template ?? $_ENV['LOB_BACK_TEMPLATE_DEFAULT'];
-
-                    
 
                     $recipient = array(
                         "name"     =>  $data->to->name ?? '',
@@ -154,9 +140,5 @@ class LobController
             // Handle errors when retrieving the payment intent
             return array('result' => 'error', 'message' => 'Stop screwing around!');
         }
-       
-
-        
-
     }
 }
