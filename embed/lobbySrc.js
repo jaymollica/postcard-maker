@@ -17,7 +17,8 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 					}
 				],
 				imageData: imageData,
-				nonce: nonce
+				nonce: nonce,
+				optionalParams: optionalParams
 			}),
 			credentials: 'same-origin',
 			cache: 'no-cache',
