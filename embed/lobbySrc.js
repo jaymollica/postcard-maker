@@ -53,7 +53,8 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 		if( imageUrl ){
 			let url = "//" + FRONTEND_ORIGIN + "?imgUrl=" + encodeURIComponent(imageUrl);
 			if( typeof optionalParams !== 'undefined' && Object.keys(optionalParams).length > 0 ){
-				url += '&optionalParams=' + btoa(JSON.stringify(optionalParams));
+				url += '&optionalParams=' + encodeURIComponent(JSON.stringify(optionalParams));
+
 			}
 			url += '&artistUrl=' + encodeURIComponent(window.location.origin);
 			window.open(url, "_self");
