@@ -5,8 +5,12 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 
 	this._send = async function({canvas, nonce, optionalParams}){
 
+		
+
 		// Store optionalParams as instance property
     	this.optionalParams = optionalParams;
+
+		alert(this.optionalParams.userMessage);
 
 		canvas = canvas instanceof HTMLElement === false && typeof canvas === 'string' ? document.querySelector(canvas) : canvas;
 
