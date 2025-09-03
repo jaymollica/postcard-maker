@@ -12,13 +12,16 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 		console.log('Available optionalParams:', Object.keys(this.optionalParams));
 		console.log('getMessage function exists:', typeof this.optionalParams.getMessage === 'function');
 
-		alert(this.optionalParams.getMessage);
-
 		if (typeof this.optionalParams.getMessage === 'function') {
 			const message = this.optionalParams.getMessage();
 			console.log('Current message from function:', message);
 			this.optionalParams.userMessage = message;
+			alert(this.optionalParams.userMessage);
+
 		}
+
+		alert(this.optionalParams.title);
+		alert(this.optionalParams.artist);
 
 		canvas = canvas instanceof HTMLElement === false && typeof canvas === 'string' ? document.querySelector(canvas) : canvas;
 
