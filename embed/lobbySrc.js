@@ -5,8 +5,6 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 
 	this._send = async function({canvas, nonce, optionalParams}){
 
-		console.log("nonce:" + nonce);
-
 		// Store optionalParams as instance property
     	this.optionalParams = optionalParams;
 
@@ -77,7 +75,6 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 	}
 
 	this._getNonce = async function(returnNonce = false){
-		alert('get nonce called');
 		try {
 			const res = await fetch(BACKEND_URL + '/nonce', {
 				method: "POST",
