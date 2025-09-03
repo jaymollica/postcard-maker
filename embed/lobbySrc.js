@@ -5,6 +5,8 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 
 	this._send = async function({canvas, nonce, optionalParams}){
 
+		console.log("nonce:" + nonce);
+
 		// Store optionalParams as instance property
     	this.optionalParams = optionalParams;
 
