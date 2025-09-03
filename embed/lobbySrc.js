@@ -77,6 +77,7 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 	}
 
 	this._getNonce = async function(returnNonce = false){
+		alert('get nonce called');
 		try {
 			const res = await fetch(BACKEND_URL + '/nonce', {
 				method: "POST",
