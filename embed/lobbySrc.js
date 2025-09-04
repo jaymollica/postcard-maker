@@ -4,6 +4,11 @@ const FRONTEND_ORIGIN = '__FRONTEND_ORIGIN__';
 function Lobby({button, canvas,  ...optionalParams} = {}){
 
 	this._send = async function({canvas, nonce, optionalParams}){
+		this.optionalParams = optionalParams;
+		
+		console.log(optionalParams);
+
+		alert(optionalParams);
 		canvas = canvas instanceof HTMLElement === false && typeof canvas === 'string' ? document.querySelector(canvas) : canvas;
 
 		const imageData = canvas.toDataURL('image/jpeg');
@@ -17,7 +22,9 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 					}
 				],
 				imageData: imageData,
-				nonce: nonce
+				nonce: nonce,
+				optionalParams: this.optionalParams,
+
 			}),
 			credentials: 'same-origin',
 			cache: 'no-cache',
