@@ -4,28 +4,9 @@ const FRONTEND_ORIGIN = '__FRONTEND_ORIGIN__';
 function Lobby({button, canvas,  ...optionalParams} = {}){
 
 	this._send = async function({canvas, nonce, optionalParams}){
-
-		// Store optionalParams as instance property
-    	this.optionalParams = optionalParams;
-
-		// Debug: Check what's available
-		console.log('Available optionalParams:', Object.keys(this.optionalParams));
-		console.log('getMessage function exists:', typeof this.optionalParams.getMessage === 'function');
-
-		if (typeof this.optionalParams.getMessage === 'function') {
-			const message = this.optionalParams.getMessage();
-			console.log('Current message from function:', message);
-			this.optionalParams.userMessage = message;
-		}
-
 		canvas = canvas instanceof HTMLElement === false && typeof canvas === 'string' ? document.querySelector(canvas) : canvas;
 
 		const imageData = canvas.toDataURL('image/jpeg');
-
-		alert(this.optionalParams.title);
-		alert(this.optionalParams.userMessage);
-
-
 	
 		const res = await fetch(BACKEND_URL + '/img', {
 			method: "POST",
@@ -36,8 +17,7 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 					}
 				],
 				imageData: imageData,
-				nonce: nonce,
-				optionalParams: this.optionalParams
+				nonce: nonce
 			}),
 			credentials: 'same-origin',
 			cache: 'no-cache',
@@ -55,8 +35,7 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 		if( imageUrl ){
 			let url = "//" + FRONTEND_ORIGIN + "?imgUrl=" + encodeURIComponent(imageUrl);
 			if( typeof optionalParams !== 'undefined' && Object.keys(optionalParams).length > 0 ){
-				url += '&optionalParams=' + encodeURIComponent(JSON.stringify(optionalParams));
-
+				url += '&optionalParams=' + btoa(JSON.stringify(optionalParams));
 			}
 			url += '&artistUrl=' + encodeURIComponent(window.location.origin);
 			window.open(url, "_self");
