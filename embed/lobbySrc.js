@@ -7,8 +7,6 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 
 		// Store optionalParams as instance property
     	this.optionalParams = optionalParams;
-		alert(this.optionalParams.title);
-
 
 		// Debug: Check what's available
 		console.log('Available optionalParams:', Object.keys(this.optionalParams));
@@ -23,6 +21,11 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 		canvas = canvas instanceof HTMLElement === false && typeof canvas === 'string' ? document.querySelector(canvas) : canvas;
 
 		const imageData = canvas.toDataURL('image/jpeg');
+
+		alert(this.optionalParams.title);
+		alert(this.optionalParams.userMessage);
+
+
 	
 		const res = await fetch(BACKEND_URL + '/img', {
 			method: "POST",
@@ -34,7 +37,7 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 				],
 				imageData: imageData,
 				nonce: nonce,
-				optionalParams: optionalParams
+				optionalParams: this.optionalParams
 			}),
 			credentials: 'same-origin',
 			cache: 'no-cache',
