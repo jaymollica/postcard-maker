@@ -1,5 +1,5 @@
 <?php
-
+error_log("AWS Controller loaded");
 use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
 class AWSController{
@@ -14,6 +14,8 @@ class AWSController{
             http_response_code(500);
             return ['result' => 'error', 'message' => 'Bad nonce'];
         }
+
+        error_log(print_r($data,true));
 
         $dataUrl = $data->imageData;
 
