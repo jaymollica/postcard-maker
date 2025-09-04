@@ -10,7 +10,7 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 
 		alert(optionalParams.artworkTitle);
 		alert(this.optionalParams.userMessage);
-		alert(this.optionalParams.getMessage);
+		//alert(this.optionalParams.getMessage);
 		canvas = canvas instanceof HTMLElement === false && typeof canvas === 'string' ? document.querySelector(canvas) : canvas;
 
 		const imageData = canvas.toDataURL('image/jpeg');
