@@ -7,6 +7,8 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 
 		// Store optionalParams as instance property
     	this.optionalParams = optionalParams;
+		alert(this.optionalParams.title);
+
 
 		// Debug: Check what's available
 		console.log('Available optionalParams:', Object.keys(this.optionalParams));
