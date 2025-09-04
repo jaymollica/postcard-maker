@@ -5,10 +5,12 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 
 	this._send = async function({canvas, nonce, optionalParams}){
 		this.optionalParams = optionalParams;
-		
-		console.log(optionalParams);
 
-		alert(optionalParams);
+		console.log(optionalParams.artworkTitle);
+
+		alert(optionalParams.artworkTitle);
+		alert(optionalParams.userMessage);
+		alert(optionalParams.getMessage);
 		canvas = canvas instanceof HTMLElement === false && typeof canvas === 'string' ? document.querySelector(canvas) : canvas;
 
 		const imageData = canvas.toDataURL('image/jpeg');
