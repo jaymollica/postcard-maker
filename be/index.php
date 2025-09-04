@@ -59,6 +59,8 @@ require './controllers/LobController.php';
 require './controllers/AWSController.php';
 require './controllers/NonceController.php';
 
+error_log("BE LOADING");
+
 $server = new \Jacwright\RestServer\RestServer('debug');
 
 // domains & templates for CORS & Lob routing purposes
