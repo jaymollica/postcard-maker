@@ -3,14 +3,6 @@ const FRONTEND_ORIGIN = '__FRONTEND_ORIGIN__';
 
 function Lobby({button, canvas,  ...optionalParams} = {}){
 
-	// Function to safely encode Unicode strings for btoa
-	function safeBtoa(str) {
-		// Convert Unicode string to UTF-8 bytes, then to base64
-		return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
-			return String.fromCharCode('0x' + p1);
-		}));
-	}
-
 	this._send = async function({canvas, nonce, optionalParams}){
 
 		//alert(this.optionalParams.getMessage);
@@ -49,8 +41,8 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 		if( imageUrl ){
 			let url = "//" + FRONTEND_ORIGIN + "?imgUrl=" + encodeURIComponent(imageUrl);
 			if( typeof optionalParams !== 'undefined' && Object.keys(optionalParams).length > 0 ){
-				// Use safeBtoa instead of btoa to handle Unicode characters
-				url += '&optionalParams=' + safeBtoa(JSON.stringify(optionalParams));
+				// Use simple URL encoding instead of base64 to avoid Unicode issues
+				url += '&optionalParams=' + encodeURIComponent(JSON.stringify(optionalParams));
 			}
 			url += '&artistUrl=' + encodeURIComponent(window.location.origin);
 			window.open(url, "_self");

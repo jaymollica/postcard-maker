@@ -32,19 +32,13 @@ const CheckoutForm = (props) => {
       promo : Object.keys(promoCode).length > 0 ? promoCode : null,
       merge_variables : {}
     };
-
-    // Function to safely decode Unicode-safe base64 encoding
-    function safeAtob(str) {
-      return decodeURIComponent(atob(str).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-    }
     
     const urlSearchParams = new URLSearchParams(document.location.search);
     if( urlSearchParams.get('optionalParams') && urlSearchParams.get('optionalParams').length > 0 ){
       try {
+        // Simple URL decoding - no base64 involved
         const optionalParamsEncoded = urlSearchParams.get('optionalParams');
-        const decodedOptionalParams = JSON.parse(safeAtob(optionalParamsEncoded));
+        const decodedOptionalParams = JSON.parse(decodeURIComponent(optionalParamsEncoded));
         body.merge_variables = decodedOptionalParams;
       } catch (error) {
         console.error('Error decoding optionalParams:', error);
