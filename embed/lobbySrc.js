@@ -10,7 +10,7 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 
 		const imageData = canvas.toDataURL('image/jpeg');
 
-		console.log(this.optionalParams);
+		console.log(optionalParams);
 	
 		// const res = await fetch(BACKEND_URL + '/img', {
 		// 	method: "POST",
