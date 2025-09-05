@@ -4,12 +4,7 @@ const FRONTEND_ORIGIN = '__FRONTEND_ORIGIN__';
 function Lobby({button, canvas,  ...optionalParams} = {}){
 
 	this._send = async function({canvas, nonce, optionalParams}){
-		this.optionalParams = optionalParams;
 
-		console.log(optionalParams.artworkTitle);
-
-		alert(optionalParams.artworkTitle);
-		alert(this.optionalParams.userMessage);
 		//alert(this.optionalParams.getMessage);
 		canvas = canvas instanceof HTMLElement === false && typeof canvas === 'string' ? document.querySelector(canvas) : canvas;
 
@@ -17,40 +12,40 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 
 		console.log(this.optionalParams);
 	
-		// const res = await fetch(BACKEND_URL + '/img', {
-		// 	method: "POST",
-		// 	body: JSON.stringify({
-		// 		items: [
-		// 			{
-		// 				id: "postcard-4x6"
-		// 			}
-		// 		],
-		// 		imageData: imageData,
-		// 		nonce: nonce,
-		// 		optionalParams: this.optionalParams,
+		const res = await fetch(BACKEND_URL + '/img', {
+			method: "POST",
+			body: JSON.stringify({
+				items: [
+					{
+						id: "postcard-4x6"
+					}
+				],
+				imageData: imageData,
+				nonce: nonce,
+				optionalParams: optionalParams,
 
-		// 	}),
-		// 	credentials: 'same-origin',
-		// 	cache: 'no-cache',
-		// 	redirect: 'follow',
-		// 	headers: {
-		// 		"Content-Type": "application/json",
-		// 		'Access-Control-Allow-Origin': window.location.host
-		// 	}
-		// });
+			}),
+			credentials: 'same-origin',
+			cache: 'no-cache',
+			redirect: 'follow',
+			headers: {
+				"Content-Type": "application/json",
+				'Access-Control-Allow-Origin': window.location.host
+			}
+		});
 
-		// const data = await res.json();
+		const data = await res.json();
 
-		// // this will be replaced by AWS call to store img object & get URL
-		// const imageUrl = data.url;
-		// if( imageUrl ){
-		// 	let url = "//" + FRONTEND_ORIGIN + "?imgUrl=" + encodeURIComponent(imageUrl);
-		// 	if( typeof optionalParams !== 'undefined' && Object.keys(optionalParams).length > 0 ){
-		// 		url += '&optionalParams=' + btoa(JSON.stringify(optionalParams));
-		// 	}
-		// 	url += '&artistUrl=' + encodeURIComponent(window.location.origin);
-		// 	window.open(url, "_self");
-		// }
+		// this will be replaced by AWS call to store img object & get URL
+		const imageUrl = data.url;
+		if( imageUrl ){
+			let url = "//" + FRONTEND_ORIGIN + "?imgUrl=" + encodeURIComponent(imageUrl);
+			if( typeof optionalParams !== 'undefined' && Object.keys(optionalParams).length > 0 ){
+				url += '&optionalParams=' + btoa(JSON.stringify(optionalParams));
+			}
+			url += '&artistUrl=' + encodeURIComponent(window.location.origin);
+			window.open(url, "_self");
+		}
 	}
 
 	this._buttonClickHandler = async function(context, e) {
