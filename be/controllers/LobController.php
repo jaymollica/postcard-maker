@@ -116,26 +116,43 @@ class LobController
 
                         $result = json_decode($response->getBody(), true);
     
-                        // Send receipt email
-                        require_once './services/MailchimpService.php';
-                        $mailchimpService = new MailchimpService();
-                        
-                        $emailResult = $mailchimpService->sendPostcardReceipt(
-                            [
-                                'front_image' => $data->front_image ?? '',
-                                'artworkTitle' => $data->artworkTitle ?? '',
-                                'artworkArtist' => $data->artworkArtist ?? ''
-                            ],
-                            [
-                                'email' => $data->email ?? '',
+                        try {
+                            require_once './services/MailchimpService.php';
+                            $mailchimpService = new MailchimpService();
+                            
+                            // Extract data correctly from the frontend structure
+                            $postcardData = [
+                                'front_image' => $data->merge_variables->artworkImageURL ?? '',
+                                'artworkTitle' => $data->merge_variables->artworkTitle ?? '',
+                                'artworkArtist' => $data->merge_variables->artworkArtist ?? '',
+                                'artworkYear' => $data->merge_variables->artworkYear ?? '',
+                                'artworkMuseum' => $data->merge_variables->artworkMuseum ?? '',
+                                'userMessage' => $data->merge_variables->userMessage ?? ''
+                            ];
+                            
+                            $senderData = [
+                                'email' => $data->to->email ?? '', // This was missing!
                                 'name' => $data->to->name ?? '',
                                 'first_name' => explode(' ', $data->to->name ?? '')[0] ?? '',
                                 'last_name' => explode(' ', $data->to->name ?? '')[1] ?? ''
-                            ],
-                            $result
-                        );
-
-                        $result['email_receipt'] = $emailResult;
+                            ];
+                            
+                            $emailResult = $mailchimpService->sendPostcardReceipt(
+                                $postcardData,
+                                $senderData,
+                                $result
+                            );
+                            
+                            // Only add to result if email was successful
+                            if (!isset($emailResult['error'])) {
+                                $result['email_receipt'] = $emailResult;
+                            }
+                        } catch (Exception $e) {
+                            // Log error but don't crash the response
+                            error_log('Email sending failed: ' . $e->getMessage());
+                            error_log('Email error trace: ' . $e->getTraceAsString());
+                            // Don't add anything to $result so the main response stays intact
+                        }
 
                         // send mixpanel on success
                         $mp->track('Purchase', array(

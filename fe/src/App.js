@@ -111,7 +111,7 @@ function App() {
           setAddressVerified={setAddressVerified}
           />
       
-        { paymentIntent.client_secret && <Stripe billingDetails={billingDetails} addressVerified={addressVerified} elementsOptions={{paymentIntent: paymentIntent, setPaymentIntent: setPaymentIntent}}  /> }
+        { paymentIntent.client_secret && <Stripe billingDetails={billingDetails} addressVerified={addressVerified} email={email} elementsOptions={{paymentIntent: paymentIntent, setPaymentIntent: setPaymentIntent}}  /> }
       </div>
     );
   }

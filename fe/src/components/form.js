@@ -54,7 +54,8 @@ export default function Form(props){
 						city: verificationResult.components.city,
 						state: verificationResult.components.state,
 						postal_code: verificationResult.components.zip_code,
-						name: fullName
+						name: fullName,
+						email: email // Add this line
 					});
 				}
 				else{
