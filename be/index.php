@@ -58,6 +58,7 @@ require './controllers/StripeController.php';
 require './controllers/LobController.php';
 require './controllers/AWSController.php';
 require './controllers/NonceController.php';
+require './controllers/EmailController.php';
 
 error_log("BE LOADING");
 
@@ -86,5 +87,6 @@ $server->addClass('StripeController');
 $server->addClass('LobController');
 $server->addClass('AWSController');
 $server->addClass('NonceController');
+$server->addClass('EmailController');
 
 $server->handle();

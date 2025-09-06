@@ -12,14 +12,13 @@ class LobController
     {
         error_log(var_export('data', true));
         error_log(var_export($data, true));
-
         
         if (!verify_nonce($data->nonce, $_ENV['NONCE_ACTION'])) {
             http_response_code(500);
             return array('result' => 'error', 'message' => 'Bad nonce');
         }
 
-        $mp = Mixpanel::getInstance("7314411302a0eb71f9a2c69c8371f36f");
+        $mp = Mixpanel::getInstance($_ENV['MIXPANEL_KEY']);
         
         $stripe = new \Stripe\StripeClient($_ENV['STRIPE_API_KEY']);
 
@@ -114,6 +113,29 @@ class LobController
                         ));
 
                         $result = json_decode($response->getBody(), true);
+
+                        $result = json_decode($response->getBody(), true);
+    
+                        // Send receipt email
+                        require_once './services/MailchimpService.php';
+                        $mailchimpService = new MailchimpService();
+                        
+                        $emailResult = $mailchimpService->sendPostcardReceipt(
+                            [
+                                'front_image' => $data->front_image ?? '',
+                                'artworkTitle' => $data->artworkTitle ?? '',
+                                'artworkArtist' => $data->artworkArtist ?? ''
+                            ],
+                            [
+                                'email' => $data->email ?? '',
+                                'name' => $data->to->name ?? '',
+                                'first_name' => explode(' ', $data->to->name ?? '')[0] ?? '',
+                                'last_name' => explode(' ', $data->to->name ?? '')[1] ?? ''
+                            ],
+                            $result
+                        );
+
+                        $result['email_receipt'] = $emailResult;
 
                         // send mixpanel on success
                         $mp->track('Purchase', array(
