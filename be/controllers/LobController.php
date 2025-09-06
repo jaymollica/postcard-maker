@@ -118,39 +118,39 @@ class LobController
     
                         try {
                             require_once './services/MailchimpService.php';
-                            $mailchimpService = new MailchimpService();
+                            // $mailchimpService = new MailchimpService();
                             
-                            // Extract data correctly from the frontend structure
-                            $postcardData = [
-                                'front_image' => $data->merge_variables->artworkImageURL ?? '',
-                                'artworkTitle' => $data->merge_variables->artworkTitle ?? '',
-                                'artworkArtist' => $data->merge_variables->artworkArtist ?? '',
-                                'artworkYear' => $data->merge_variables->artworkYear ?? '',
-                                'artworkMuseum' => $data->merge_variables->artworkMuseum ?? '',
-                                'userMessage' => $data->merge_variables->userMessage ?? ''
-                            ];
+                            // // Extract data correctly from the frontend structure
+                            // $postcardData = [
+                            //     'front_image' => $data->merge_variables->artworkImageURL ?? '',
+                            //     'artworkTitle' => $data->merge_variables->artworkTitle ?? '',
+                            //     'artworkArtist' => $data->merge_variables->artworkArtist ?? '',
+                            //     'artworkYear' => $data->merge_variables->artworkYear ?? '',
+                            //     'artworkMuseum' => $data->merge_variables->artworkMuseum ?? '',
+                            //     'userMessage' => $data->merge_variables->userMessage ?? ''
+                            // ];
                             
-                            $senderData = [
-                                'email' => $data->to->email ?? '', // This was missing!
-                                'name' => $data->to->name ?? '',
-                                'first_name' => explode(' ', $data->to->name ?? '')[0] ?? '',
-                                'last_name' => explode(' ', $data->to->name ?? '')[1] ?? ''
-                            ];
+                            // $senderData = [
+                            //     'email' => $data->to->email ?? '', // This was missing!
+                            //     'name' => $data->to->name ?? '',
+                            //     'first_name' => explode(' ', $data->to->name ?? '')[0] ?? '',
+                            //     'last_name' => explode(' ', $data->to->name ?? '')[1] ?? ''
+                            // ];
                             
-                            $emailResult = $mailchimpService->sendPostcardReceipt(
-                                $postcardData,
-                                $senderData,
-                                $result
-                            );
+                            // $emailResult = $mailchimpService->sendPostcardReceipt(
+                            //     $postcardData,
+                            //     $senderData,
+                            //     $result
+                            // );
                             
-                            // Only add to result if email was successful
-                            if (!isset($emailResult['error'])) {
-                                $result['email_receipt'] = $emailResult;
-                            }
+                            // // Only add to result if email was successful
+                            // if (!isset($emailResult['error'])) {
+                            //     $result['email_receipt'] = $emailResult;
+                            // }
                         } catch (Exception $e) {
                             // Log error but don't crash the response
-                            error_log('Email sending failed: ' . $e->getMessage());
-                            error_log('Email error trace: ' . $e->getTraceAsString());
+                            // error_log('Email sending failed: ' . $e->getMessage());
+                            // error_log('Email error trace: ' . $e->getTraceAsString());
                             // Don't add anything to $result so the main response stays intact
                         }
 
