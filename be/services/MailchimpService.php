@@ -50,15 +50,16 @@ class MailchimpService {
                     'email' => $senderData['email'],
                     'name' => $senderData['name'] ?? ''
                 ]],
-                // 'global_merge_vars' => [
-                //     ['name' => 'SENDER_NAME', 'content' => $senderData['name'] ?? ''],
-                //     ['name' => 'POSTCARD_IMAGE', 'content' => $postcardData['front_image'] ?? ''],
-                //     ['name' => 'TRACKING_URL', 'content' => $lobData['url'] ?? ''],
-                //     ['name' => 'DELIVERY_DATE', 'content' => $deliveryEstimate],
-                //     ['name' => 'COST', 'content' => '$' . number_format(($lobData['cost'] ?? 80) / 100, 2)],
-                //     ['name' => 'ARTWORK_TITLE', 'content' => $postcardData['artworkTitle'] ?? ''],
-                //     ['name' => 'ARTWORK_ARTIST', 'content' => $postcardData['artworkArtist'] ?? '']
-                // ],
+                'global_merge_vars' => [
+                    ['name' => 'SENDER_NAME', 'content' => $senderData['name'] ?? ''],
+                    ['name' => 'POSTCARD_IMAGE', 'content' => $postcardData['front_image'] ?? ''],
+                    ['name' => 'TRACKING_URL', 'content' => $lobData['url'] ?? ''],
+                    ['name' => 'DELIVERY_DATE', 'content' => $deliveryEstimate],
+                    ['name' => 'COST', 'content' => '$' . number_format(($lobData['cost'] ?? 80) / 100, 2)],
+                    ['name' => 'ARTWORK_TITLE', 'content' => $postcardData['artworkTitle'] ?? ''],
+                    ['name' => 'ARTWORK_ARTIST', 'content' => $postcardData['artworkArtist'] ?? ''],
+                    ['name' => 'ARTWORK_MUSEUM', 'content' => $postcardData['artworkMuseum'] ?? '']
+                ],
                 'template_name' => 'postcard-receipt-1',
                 'template_content' => []
             ]
