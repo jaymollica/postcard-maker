@@ -136,6 +136,11 @@ class LobController
                                 'first_name' => explode(' ', $data->to->name ?? '')[0] ?? '',
                                 'last_name' => explode(' ', $data->to->name ?? '')[1] ?? ''
                             ];
+
+                            error_log('=== EMAIL DATA DEBUG ===');
+                            error_log('$data->to: ' . json_encode($data->to ?? 'MISSING'));
+                            error_log('$data->merge_variables: ' . json_encode($data->merge_variables ?? 'MISSING'));
+                            error_log('$result from Lob: ' . json_encode($result));
                             
                             $emailResult = $mailchimpService->sendPostcardReceipt(
                                 $postcardData,

@@ -39,32 +39,45 @@ class MailchimpService {
     }
     
     private function sendTransactionalEmail($postcardData, $senderData, $lobData) {
-        $deliveryEstimate = $this->calculateDeliveryEstimate($lobData['date_created']);
-        
-        return $this->transactional->messages->send([
-            'message' => [
-                'subject' => 'Your CC0 Postcard Receipt & Tracking 📮',
-                'from_email' => 'do-not-reply@sweetpost.art',
-                'from_name' => 'CC0 Postcards',
-                'to' => [[
-                    'email' => $senderData['email'],
-                    'name' => $senderData['name'] ?? ''
-                ]],
-                'global_merge_vars' => [
-                    ['name' => 'SENDER_NAME', 'content' => $senderData['name'] ?? ''],
-                    ['name' => 'POSTCARD_IMAGE', 'content' => $postcardData['front_image'] ?? ''],
-                    ['name' => 'TRACKING_URL', 'content' => $lobData['url'] ?? ''],
-                    ['name' => 'DELIVERY_DATE', 'content' => $deliveryEstimate],
-                    ['name' => 'COST', 'content' => '$' . number_format(($lobData['cost'] ?? 80) / 100, 2)],
-                    ['name' => 'ARTWORK_TITLE', 'content' => $postcardData['artworkTitle'] ?? ''],
-                    ['name' => 'ARTWORK_ARTIST', 'content' => $postcardData['artworkArtist'] ?? ''],
-                    ['name' => 'ARTWORK_MUSEUM', 'content' => $postcardData['artworkMuseum'] ?? '']
-                ],
-                'template_name' => 'postcard-receipt-1',
-                'template_content' => []
-            ]
-        ]);
+    $deliveryEstimate = $this->calculateDeliveryEstimate($lobData['date_created']);
+    
+    $messageData = [
+        'subject' => 'Your CC0 Postcard Receipt & Tracking 📮',
+        'from_email' => 'do-not-reply@sweetpost.art',
+        'from_name' => 'CC0 Postcards',
+        'to' => [[
+            'email' => $senderData['email'],
+            'name' => $senderData['name'] ?? ''
+        ]],
+        'global_merge_vars' => [
+            ['name' => 'SENDER_NAME', 'content' => $senderData['name'] ?? ''],
+            ['name' => 'POSTCARD_IMAGE', 'content' => $postcardData['front_image'] ?? ''],
+            ['name' => 'TRACKING_URL', 'content' => $lobData['url'] ?? ''],
+            ['name' => 'DELIVERY_DATE', 'content' => $deliveryEstimate],
+            ['name' => 'COST', 'content' => '$' . number_format(($lobData['cost'] ?? 80) / 100, 2)],
+            ['name' => 'ARTWORK_TITLE', 'content' => $postcardData['artworkTitle'] ?? ''],
+            ['name' => 'ARTWORK_ARTIST', 'content' => $postcardData['artworkArtist'] ?? ''],
+            ['name' => 'ARTWORK_MUSEUM', 'content' => $postcardData['artworkMuseum'] ?? '']
+        ],
+        'template_name' => 'postcard-receipt-1',
+        'template_content' => []
+    ];
+    
+    // Debug logging
+    error_log('=== MANDRILL DEBUG ===');
+    error_log('Template: postcard-receipt-1');
+    error_log('To: ' . $senderData['email']);
+    error_log('Merge vars: ' . json_encode($messageData['global_merge_vars']));
+    
+    try {
+        $result = $this->transactional->messages->send(['message' => $messageData]);
+        error_log('Mandrill result: ' . json_encode($result));
+        return $result;
+    } catch (Exception $e) {
+        error_log('Mandrill error: ' . $e->getMessage());
+        throw $e;
     }
+}
     
     private function addToAudience($senderData) {
         return $this->marketing->post("lists/" . $_ENV['MAILCHIMP_AUDIENCE_ID'] . "/members", [
