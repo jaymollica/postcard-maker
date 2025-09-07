@@ -62,6 +62,14 @@ class MailchimpService {
         'template_name' => 'postcard-receipt-1',
         'template_content' => []
     ];
+
+    // Write to a file we can easily check
+    $debugFile = '/tmp/mandrill_debug.log';
+    file_put_contents($debugFile, "\n=== " . date('Y-m-d H:i:s') . " ===\n", FILE_APPEND);
+    file_put_contents($debugFile, "Email to: " . $senderData['email'] . "\n", FILE_APPEND);
+    file_put_contents($debugFile, "Template: postcard-receipt-1\n", FILE_APPEND);
+    file_put_contents($debugFile, "Merge vars: " . json_encode($messageData['global_merge_vars'], JSON_PRETTY_PRINT) . "\n", FILE_APPEND);
+    
     
     // Debug logging
     error_log('=== MANDRILL DEBUG ===');
