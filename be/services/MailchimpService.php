@@ -74,9 +74,9 @@ class MailchimpService {
                 ['name' => 'ARTWORK_ARTIST', 'content' => $postcardData['artworkArtist'] ?? ''],
                 ['name' => 'ARTWORK_MUSEUM', 'content' => $postcardData['artworkMuseum'] ?? '']
             ],
-            'html' => $htmlContent,
-            //'template_name' => 'postcard-receipt-1',
-            //'template_content' => []
+            //'html' => $htmlContent,
+            'template_name' => 'postcard-receipt',
+            'template_content' => []
         ];
 
         // Write to a file we can easily check
