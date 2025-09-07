@@ -56,12 +56,12 @@ class MailchimpService {
             </div>
         </div>";
 
-        // Render template first
-        $renderedTemplate = $this->transactional->templates->render([
-            'template_name' => 'postcard-receipt-1',
-            'template_content' => [],
-            'merge_vars' => $mergeVars
-        ]);
+        // // Render template first
+        // $renderedTemplate = $this->transactional->templates->render([
+        //     'template_name' => 'postcard-receipt-1',
+        //     'template_content' => [],
+        //     'merge_vars' => $mergeVars
+        // ]);
         
         $messageData = [
             'subject' => 'Your CC0 Postcard Receipt & Tracking 📮',
@@ -81,7 +81,7 @@ class MailchimpService {
                 ['name' => 'ARTWORK_ARTIST', 'content' => $postcardData['artworkArtist'] ?? ''],
                 ['name' => 'ARTWORK_MUSEUM', 'content' => $postcardData['artworkMuseum'] ?? '']
             ],
-            'html' => $renderedTemplate['html'],
+            'html' => $htmlContent,
             //'template_name' => 'postcard-receipt',
             //'template_content' => []
         ];
