@@ -44,7 +44,7 @@ class MailchimpService {
         return $this->transactional->messages->send([
             'message' => [
                 'subject' => 'Your CC0 Postcard Receipt & Tracking 📮',
-                'from_email' => 'support@mail.sweetpost.art',
+                'from_email' => 'do-not-reply@sweetpost.art',
                 'from_name' => 'CC0 Postcards',
                 'to' => [[
                     'email' => $senderData['email'],
@@ -59,7 +59,7 @@ class MailchimpService {
                     ['name' => 'ARTWORK_TITLE', 'content' => $postcardData['artworkTitle'] ?? ''],
                     ['name' => 'ARTWORK_ARTIST', 'content' => $postcardData['artworkArtist'] ?? '']
                 ],
-                'template_name' => 'postcard-receipt',
+                'template_name' => 'postcard-receipt-1',
                 'template_content' => []
             ]
         ]);
