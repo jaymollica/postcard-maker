@@ -113,10 +113,6 @@ class LobController
                         ));
 
                         $result = json_decode($response->getBody(), true);
-
-                        // Add this line to confirm we reach this point
-                        file_put_contents('/tmp/email_debug.log', "Email section reached at " . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
-
     
                         try {
                             require_once __DIR__ . '/../services/MailchimpService.php';
