@@ -39,11 +39,39 @@ class MailchimpService {
     }
     
     private function sendTransactionalEmail($postcardData, $senderData, $lobData) {
+
         $deliveryEstimate = $this->calculateDeliveryEstimate($lobData['date_created']);
+
+        // Build inline HTML instead of using template
+        $htmlContent = "
+        <div style='max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;'>
+            <div style='background: #0078d4; color: white; padding: 40px 20px; text-align: center;'>
+                <h1>Your Postcard is on its way!</h1>
+                <p>Thanks for using CC0 Postcards, " . ($senderData['name'] ?? '') . "</p>
+            </div>
+            <div style='padding: 20px;'>
+                <p><strong>Cost:</strong> $" . number_format(($lobData['cost'] ?? 80) / 100, 2) . "</p>
+                <p><strong>Estimated Delivery:</strong> " . $deliveryEstimate . "</p>
+                <p><a href='" . ($lobData['url'] ?? '#') . "'>Track Your Postcard</a></p>
+            </div>
+        </div>";
+
+        // Render template first
+        $renderedTemplate = $this->transactional->templates->render([
+            'template_name' => 'postcard-receipt-1',
+            'template_content' => [],
+            'merge_vars' => $mergeVars
+        ]);
         
-        // Try rendering the template first
-        try {
-            $mergeVars = [
+        $messageData = [
+            'subject' => 'Your CC0 Postcard Receipt & Tracking 📮',
+            'from_email' => 'do-not-reply@sweetpost.art',
+            'from_name' => 'CC0 Postcards',
+            'to' => [[
+                'email' => $senderData['email'],
+                'name' => $senderData['name'] ?? ''
+            ]],
+            'global_merge_vars' => [
                 ['name' => 'SENDER_NAME', 'content' => $senderData['name'] ?? ''],
                 ['name' => 'POSTCARD_IMAGE', 'content' => $postcardData['front_image'] ?? ''],
                 ['name' => 'TRACKING_URL', 'content' => $lobData['url'] ?? ''],
@@ -52,33 +80,21 @@ class MailchimpService {
                 ['name' => 'ARTWORK_TITLE', 'content' => $postcardData['artworkTitle'] ?? ''],
                 ['name' => 'ARTWORK_ARTIST', 'content' => $postcardData['artworkArtist'] ?? ''],
                 ['name' => 'ARTWORK_MUSEUM', 'content' => $postcardData['artworkMuseum'] ?? '']
-            ];
-            
-            // Render template first
-            $renderedTemplate = $this->transactional->templates->render([
-                'template_name' => 'postcard-receipt-1',
-                'template_content' => [],
-                'merge_vars' => $mergeVars
-            ]);
-            
-            // Send with rendered content
-            return $this->transactional->messages->send([
-                'message' => [
-                    'subject' => 'Your CC0 Postcard Receipt & Tracking',
-                    'from_email' => 'do-not-reply@sweetpost.art',
-                    'from_name' => 'CC0 Postcards',
-                    'to' => [[
-                        'email' => $senderData['email'],
-                        'name' => $senderData['name'] ?? ''
-                    ]],
-                    'html' => $renderedTemplate['html']
-                ]
-            ]);
-            
+            ],
+            'html' => $renderedTemplate['html'],
+            //'template_name' => 'postcard-receipt',
+            //'template_content' => []
+        ];
+
+
+        
+        try {
+            $result = $this->transactional->messages->send(['message' => $messageData]);
+            error_log('Mandrill result: ' . json_encode($result));
+            return $result;
         } catch (Exception $e) {
-            error_log('Template render failed: ' . $e->getMessage());
-            // Fall back to inline HTML
-            return $this->sendInlineEmail($postcardData, $senderData, $lobData);
+            error_log('Mandrill error: ' . $e->getMessage());
+            throw $e;
         }
     }
     
