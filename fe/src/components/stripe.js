@@ -26,7 +26,10 @@ const CheckoutForm = (props) => {
 
   const sendPostcard = async (paymentIntent = null) => {
     let body = {
-      to: props.billingDetails,
+      to: {
+        ...props.billingDetails,
+        email: props.email
+      },
       paymentIntent : paymentIntent === null ? props.paymentIntent : paymentIntent,
       nonce : document.querySelector('input[name="nonce"]').value,
       promo : Object.keys(promoCode).length > 0 ? promoCode : null,
