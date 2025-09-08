@@ -20,15 +20,21 @@ const CheckoutForm = (props) => {
   const elements = useElements();
   const [ isLoading, setIsLoading ] = useState(false);
   const [ message, setMessage ] = useState(null);
+  const [ messageType, setMessageType ] = useState(''); // 'error', 'success', or ''
   const [ paymentSuccessful, setPaymentSuccessful ] = useState(false);
   const [ promoCode, setPromoCode] = useState({});
   const [ cost, setCost ] = useState(defaultCost);
+
+  const setMessageWithType = (msg, type = '') => {
+    setMessage(msg);
+    setMessageType(type);
+  };
 
   const sendPostcard = async (paymentIntent = null) => {
     let body = {
       to: {
         ...props.billingDetails,
-        email: props.email
+        email: props.email // Add email to the billing details
       },
       paymentIntent : paymentIntent === null ? props.paymentIntent : paymentIntent,
       nonce : document.querySelector('input[name="nonce"]').value,
@@ -77,12 +83,12 @@ const CheckoutForm = (props) => {
       const lobResponseDecoded = await lobResponse.json();
       
       if( lobResponseDecoded.url ){
-        setMessage(`Your payment was successful! You should receive an email with your receipt and order number.<br />Preview your postcard <a href="${lobResponseDecoded.url}" target="_blank">here</a>. Since each postcard is printed on demand, please allow 10-14 business days for arrival.`);
+        setMessageWithType(`Payment successful! You'll receive an email receipt shortly. <a href="${lobResponseDecoded.url}" target="_blank" rel="noopener noreferrer">Preview your postcard here</a>. Please allow 10-14 business days for delivery.`, 'success');
       }
     
     } catch (error) {
       console.error('An error occurred:', error);
-      setMessage(error);
+      setMessageWithType('An error occurred while processing your order. Please try again.', 'error');
     }
   }
 
@@ -92,14 +98,14 @@ const CheckoutForm = (props) => {
 
     // Validate email before processing payment
     if( props.email.length === 0 ){
-      setMessage('Email is required for receipt');
+      setMessageWithType('Please enter your email address to receive the receipt.', 'error');
       return;
     }
     else if( props.email.match(
       // eslint-disable-next-line no-useless-escape
       /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
     ) === null ){
-      setMessage('Email is invalid');
+      setMessageWithType('Please enter a valid email address.', 'error');
       return;
     }
 
@@ -108,6 +114,7 @@ const CheckoutForm = (props) => {
     }
 
     setIsLoading(true);
+    setMessageWithType(''); // Clear any existing messages
 
     // if the cost is 0 then no need to use stripe
     let bypassStripe = false;
@@ -117,7 +124,6 @@ const CheckoutForm = (props) => {
 
     if( bypassStripe ){
       setPaymentSuccessful(true);
-          
       sendPostcard(props.paymentIntent);
     }
     else{
@@ -145,24 +151,24 @@ const CheckoutForm = (props) => {
       // be redirected to an intermediate site first to authorize the payment, then
       // redirected to the `return_url`.
       if ( response.error && (response.error.type === "card_error" || response.error.type === "validation_error") ) {
-        setMessage(response.error.message);
+        setMessageWithType(response.error.message, 'error');
       }
       else if( response.paymentIntent ){
         if( response.paymentIntent.status === 'succeeded' ){
-          setMessage('Your payment was successful! You should receive an email with your receipt and order number.');
+          setMessageWithType('Payment successful! You\'ll receive an email receipt shortly.', 'success');
           setPaymentSuccessful(true);
           
           sendPostcard(response.paymentIntent);
         }
         else if( response.paymentIntent.status === 'processing' ){
-          setMessage('Payment processing. We\'ll update you when payment is received.');
+          setMessageWithType('Payment is being processed. We\'ll update you when it\'s complete.', 'success');
         }
         else if( response.paymentIntent.status === 'requires_payment_method' ){
-          setMessage('Payment failed. Please try another payment method.');
+          setMessageWithType('Payment failed. Please try a different payment method.', 'error');
         }
       }
       else {
-        setMessage("An unexpected error occurred.");
+        setMessageWithType('An unexpected error occurred. Please try again.', 'error');
       }
     }
     
@@ -173,7 +179,7 @@ const CheckoutForm = (props) => {
 
   const promoChangeHandler = debounce(async (e) => {
     if( e.target.value.length === 0 ){
-      setMessage('');
+      setMessageWithType('');
       setCost(defaultCost);
       return;
     }
@@ -204,12 +210,12 @@ const CheckoutForm = (props) => {
       setPromoCode({});
 
       if( typeof promoResponseDecoded.result !== 'undefined' && promoResponseDecoded.result === 'error' ){
-        setMessage(promoResponseDecoded.message);
+        setMessageWithType(promoResponseDecoded.message, 'error');
         setCost(defaultCost);
       }
       else if( promoResponseDecoded.active ){
         setPromoCode(promoResponseDecoded);
-        setMessage('Promo code is valid!');
+        setMessageWithType('Promo code applied successfully!', 'success');
 
         let newCost = cost;
 
@@ -253,6 +259,7 @@ const CheckoutForm = (props) => {
       }
     } catch (error) {
       console.log(error);
+      setMessageWithType('Error validating promo code. Please try again.', 'error');
     }
 
 
@@ -260,47 +267,62 @@ const CheckoutForm = (props) => {
 
   return (
     <div className="stripecontainer">
-    <h2 className="total">Your payment total is {new Intl.NumberFormat('en-US', {
-        currency: 'USD',
-        style: 'currency'
-    }).format(cost / 100)}</h2>
-    <div className="description">Rates may vary depending on geographic location.</div>
-    <form className="stripeform" onSubmit={handleSubmit}>
-      {/* Show any error or success messages */}
-      {message && <div id="payment-message" dangerouslySetInnerHTML={{ __html: message }}></div>}
+      <h2 className="total">Total: {new Intl.NumberFormat('en-US', {
+          currency: 'USD',
+          style: 'currency'
+      }).format(cost / 100)}</h2>
+      <div className="description">Complete your payment to send your postcard. Shipping rates may vary by location.</div>
       
-      {/* Email field */}
-      <div style={{display: 'flex', flexDirection: 'row', marginBottom: '1em'}}>
-        <label style={{alignSelf: 'center', minWidth: '5em', marginRight: '1em', textAlign: 'end'}} htmlFor='email'>
-          Email<br /><small>(for receipt)</small>
-        </label>
-        <input
-          style={{ 
-            backgroundColor: 'rgb(255, 255, 255)',
-            border: '1px solid rgb(204, 204, 204)',
-            borderRadius: '4px',
-            boxSizing: 'border-box',
-            minHeight: '38px',
-            outline: '0px',
-            padding: '0px 8px',
-            width: '100%',
-            marginBottom: 'auto',
-          }}
-          type="email"
-          id='email'
-          onChange={ e => {
-            props.setEmail(e.target.value)
-          } }
-          value={props.email}
-        />
-      </div>
+      <form className="stripeform" onSubmit={handleSubmit}>
+        {/* Show any error or success messages */}
+        {message && (
+          <div id="payment-message" className={messageType} dangerouslySetInnerHTML={{ __html: message }}></div>
+        )}
+        
+        {/* Email field */}
+        <div className="email-field">
+          <label htmlFor='email'>
+            Email Address
+            <br /><small>We'll send your receipt here</small>
+          </label>
+          <input
+            type="email"
+            id='email'
+            onChange={ e => {
+              props.setEmail(e.target.value)
+              // Clear email-related errors when typing
+              if (message && (message.includes('email') || message.includes('Email'))) {
+                setMessageWithType('');
+              }
+            } }
+            value={props.email}
+            placeholder="Enter your email address"
+          />
+        </div>
 
-      <input type="text" name="promo" className="stripeform-promo" placeholder="Promo code" onChange={ promoChangeHandler } />
-      {cost >= 50 && <CardElement />}
-      <button type="submit" className={isLoading ? 'loading' : (paymentSuccessful ? 'paid' : "")} disabled={isLoading || !stripe || !elements || paymentSuccessful}>
-        {isLoading ? ButtonLabelVerifying('Paying') : (paymentSuccessful ? ButtonLabelVerified('Paid') : ButtonLabelVerify('Pay')) }
-      </button>
-    </form>
+        <input 
+          type="text" 
+          name="promo" 
+          className="stripeform-promo" 
+          placeholder="Promo code (optional)" 
+          onChange={ promoChangeHandler } 
+        />
+        
+        {cost >= 50 && (
+          <>
+            <label className="card-label">Card Information</label>
+            <CardElement />
+          </>
+        )}
+        
+        <button 
+          type="submit" 
+          className={isLoading ? 'loading' : (paymentSuccessful ? 'paid' : "")} 
+          disabled={isLoading || !stripe || !elements || paymentSuccessful}
+        >
+          {isLoading ? ButtonLabelVerifying('Processing Payment') : (paymentSuccessful ? ButtonLabelVerified('Payment Complete') : ButtonLabelVerify(`Pay ${new Intl.NumberFormat('en-US', { currency: 'USD', style: 'currency' }).format(cost / 100)}`)) }
+        </button>
+      </form>
     </div>
   );
 };
@@ -310,13 +332,13 @@ const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 export default function Stripe(props) {
   if( props.addressVerified ){
     return (
-
       <Elements stripe={stripePromise} options={{ clientSecret : props.elementsOptions.paymentIntent.clientSecret }}>
         <CheckoutForm 
           billingDetails={props.billingDetails} 
           paymentIntent={ props.elementsOptions.paymentIntent }
           email={props.email}
           setEmail={props.setEmail}
+          setPaymentIntent={props.elementsOptions.setPaymentIntent}
         />
       </Elements>
     );

@@ -1,4 +1,3 @@
-
 .addressform{
 	max-width: 800px;
 	margin: 0 auto;
@@ -6,27 +5,157 @@
 	box-sizing: border-box;
 }
 
+.addressform h2{
+	margin: 0 auto;
+	max-width: 800px;
+	padding: 20px 0px;
+	text-align: left;
+	font-weight: 600;
+	color: #2c3e50;
+}
 
+.addressform .description{
+	padding: 20px 0px;
+	color: #64748b;
+	font-size: 15px;
+	line-height: 1.5;
+}
+
+.addressform-messages{
+	padding-top: 0px;
+	padding-bottom: 20px;
+	text-align: left;
+	min-height: 20px;
+}
+
+.addressform-messages.error{
+	color: #ef4444;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.addressform-messages.success{
+	color: #22c55e;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+/* Modern form styling */
+.addressform input, 
+.addressform div[class*="css-"] {
+	background: #ffffff;
+	border: 1.5px solid #e2e8f0;
+	border-radius: 8px;
+	box-sizing: border-box;
+	min-height: 44px;
+	outline: none;
+	padding: 0px 16px;
+	width: 100%;
+	font-size: 15px;
+	transition: all 0.2s ease;
+	margin-bottom: 16px;
+}
+
+.addressform input:focus,
+.addressform div[class*="css-"]:focus-within {
+	border-color: #3b82f6;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.addressform label {
+	font-weight: 500;
+	color: #374151;
+	font-size: 14px;
+	margin-bottom: 6px;
+	display: block;
+}
+
+/* Modern button styling */
+.addressform button{
+	font-weight: 600;
+	border: none;
+	outline: none;
+	background: #3b82f6;
+	color: white;
+	font-size: 16px;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	margin: 20px auto 0 auto;
+	padding: 14px 32px;
+	border-radius: 8px;
+	transition: all 0.2s ease;
+	min-width: 140px;
+	position: relative;
+}
+
+.addressform button:hover:not(:disabled){
+	background: #2563eb;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.addressform button:disabled{
+	background: #94a3b8;
+	cursor: not-allowed;
+	transform: none;
+	box-shadow: none;
+}
+
+.addressform.verified button{
+	background: #22c55e;
+	cursor: default;
+}
+
+.addressform.verified button:hover{
+	background: #22c55e;
+	transform: none;
+}
+
+.addressform button span{
+	margin-right: 8px;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.addressform button svg{
+	display: inline-block;
+	vertical-align: middle;
+	width: 20px;
+	height: 20px;
+}
+
+.addressform button .tailspin{
+	width: 20px;
+	height: 20px;
+}
+
+.addressform button .tailspin path{
+	stroke: #fff;
+}
+
+/* Subtle checkmark animation */
 .checkmark__circle {
 	stroke-dasharray: 166;
 	stroke-dashoffset: 166;
 	stroke-width: 2;
 	stroke-miterlimit: 10;
-	stroke: #7ac142;
+	stroke: #22c55e;
 	fill: none;
 	animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
 }
 
 .checkmark {
-	width: 56px;
-	height: 56px;
+	width: 20px;
+	height: 20px;
 	border-radius: 50%;
 	display: block;
 	stroke-width: 2;
 	stroke: #fff;
 	stroke-miterlimit: 10;
-	margin: 10% auto;
-	box-shadow: inset 0px 0px 0px #7ac142;
+	margin: 0;
+	box-shadow: inset 0px 0px 0px #22c55e;
 	animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
 }
 
@@ -47,66 +176,75 @@
 		transform: none;
 	}
 	50% {
-		transform: scale3d(1.1, 1.1, 1);
+		transform: scale3d(1.05, 1.05, 1);
 	}
 }
 @keyframes fill {
 	100% {
-		box-shadow: inset 0px 0px 0px 30px #7ac142;
+		box-shadow: inset 0px 0px 0px 15px #22c55e;
 	}
 }
-.addressform h2{
-	margin: 0 auto;
-	max-width: 800px;
-	padding: 20px 0px;
-	text-align: left;
-}
-.addressform .description{
-	padding: 20px 0px;
-}
-.addressform button{
-	font-weight: bold;
-	border: 0;
-	outline: 0;
-	background: none;
-	font-size: 23px;
-	cursor: pointer;
-	display: inline-block;
-	margin: 0 auto;
-}
-.addressform.verified button,
-.addressform.verifying button{
-	cursor: default;
-}
-.addressform button span{
-	margin-right: 8px;
-	display: inline-block;
-	vertical-align: middle;
-}
-.addressform button svg{
-	transform: scale(1.25);
-	display: inline-block;
-	vertical-align: middle;
-}
-.addressform button .tailspin{
-	transform: scale(0.75);
-}
-.addressform button .tailspin path{
-	stroke: #000;
+
+/* Form layout improvements */
+.form-field {
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 20px;
 }
 
-.addressform button .checkmark{
-	width: 30px;
-	height: 30px;
-	margin: 0;
+.form-field label {
+	margin-bottom: 6px;
 }
 
-.addressform-messages{
-	padding-top: 0px;
-	padding-bottom: 20px;
-	text-align: left;
+.form-field small {
+	color: #64748b;
+	font-size: 12px;
+	font-weight: normal;
 }
 
+/* React Select component styling overrides */
 .addressform div[class*="css-"][class*="-option"] span{
-	color: rgb(136, 136, 136);
+	color: #64748b;
+}
+
+.addressform div[class*="css-"][class*="-control"] {
+	border: 1.5px solid #e2e8f0 !important;
+	border-radius: 8px !important;
+	min-height: 44px !important;
+	box-shadow: none !important;
+}
+
+.addressform div[class*="css-"][class*="-control"]:hover {
+	border-color: #cbd5e1 !important;
+}
+
+.addressform div[class*="css-"][class*="-control--is-focused"] {
+	border-color: #3b82f6 !important;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Status indicator */
+.status-indicator {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+	font-weight: 500;
+	margin-top: 12px;
+	padding: 8px 12px;
+	border-radius: 6px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+}
+
+.status-indicator.success {
+	background: #f0fdf4;
+	border-color: #bbf7d0;
+	color: #15803d;
+}
+
+.status-indicator.error {
+	background: #fef2f2;
+	border-color: #fecaca;
+	color: #dc2626;
 }
