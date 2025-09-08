@@ -24,33 +24,26 @@
 	margin-bottom: 24px;
 }
 
-/* Form styling */
-.stripeform {
-	display: flex;
-	flex-direction: column;
-	gap: 20px;
+/* Our custom email field styling - very specific selector */
+.stripecontainer .email-field {
+	margin-bottom: 20px;
 }
 
-/* Our custom email field styling */
-.email-field {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-}
-
-.email-field label {
+.stripecontainer .email-field label {
 	font-weight: 500;
 	color: #374151;
 	font-size: 14px;
+	margin-bottom: 6px;
+	display: block;
 }
 
-.email-field small {
+.stripecontainer .email-field small {
 	color: #64748b;
 	font-size: 12px;
 	font-weight: normal;
 }
 
-.email-field input {
+.stripecontainer .email-field input {
 	background: #ffffff;
 	border: 1.5px solid #e2e8f0;
 	border-radius: 8px;
@@ -63,17 +56,17 @@
 	transition: all 0.2s ease;
 }
 
-.email-field input:focus {
+.stripecontainer .email-field input:focus {
 	border-color: #3b82f6;
 	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.email-field input::placeholder {
+.stripecontainer .email-field input::placeholder {
 	color: #94a3b8;
 }
 
-/* Promo code styling */
-.stripeform-promo{
+/* Promo code styling - very specific */
+.stripecontainer .stripeform-promo{
 	width: 100%;
 	box-sizing: border-box;
 	padding: 16px;
@@ -83,55 +76,34 @@
 	border-radius: 8px;
 	background: #ffffff;
 	transition: all 0.2s ease;
+	margin-bottom: 20px;
 }
 
-.stripeform-promo:focus {
+.stripecontainer .stripeform-promo:focus {
 	border-color: #3b82f6;
 	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.stripeform-promo::placeholder {
+.stripecontainer .stripeform-promo::placeholder {
 	color: #94a3b8;
 }
 
 /* Card element label */
-.card-label {
+.stripecontainer .card-label {
 	font-weight: 500;
 	color: #374151;
 	font-size: 14px;
-	margin-bottom: 6px;
+	margin-bottom: 8px;
 	display: block;
 }
 
-/* Stripe Elements styling - keep minimal to not break functionality */
-.StripeElement{
-	background: #ffffff;
-	max-width: 100%;
-	margin: 0 auto;
-	padding: 16px;
-	box-sizing: border-box;
-	border: 1.5px solid #e2e8f0;
-	border-radius: 8px;
-	font-size: 15px;
-	transition: border-color 0.2s ease;
+/* Minimal Stripe Elements styling - don't interfere */
+.stripecontainer .StripeElement{
+	margin-bottom: 20px;
 }
 
-.StripeElement:focus,
-.StripeElement--focus {
-	border-color: #3b82f6;
-	outline: none;
-}
-
-.StripeElement--invalid {
-	border-color: #ef4444;
-}
-
-.StripeElement--complete {
-	border-color: #22c55e;
-}
-
-/* Payment button styling */
-.stripeform button{
+/* Payment button styling - very specific */
+.stripecontainer .stripeform button{
 	font-weight: 600;
 	border: none;
 	outline: none;
@@ -150,65 +122,65 @@
 	position: relative;
 }
 
-.stripeform button:hover:not(:disabled){
+.stripecontainer .stripeform button:hover:not(:disabled){
 	background: #2563eb;
 	transform: translateY(-1px);
 	box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-.stripeform button:disabled{
+.stripecontainer .stripeform button:disabled{
 	background: #94a3b8;
 	cursor: not-allowed;
 	transform: none;
 	box-shadow: none;
 }
 
-.stripeform button.paid{
+.stripecontainer .stripeform button.paid{
 	background: #22c55e;
 	cursor: default;
 }
 
-.stripeform button.paid:hover{
+.stripecontainer .stripeform button.paid:hover{
 	background: #22c55e;
 	transform: none;
 	box-shadow: none;
 }
 
-.stripeform button.loading{
+.stripecontainer .stripeform button.loading{
 	background: #6366f1;
 	cursor: not-allowed;
 }
 
-.stripeform button span{
+.stripecontainer .stripeform button span{
 	margin-right: 8px;
 	display: inline-block;
 	vertical-align: middle;
 }
 
-.stripeform button svg{
+.stripecontainer .stripeform button svg{
 	display: inline-block;
 	vertical-align: middle;
 	width: 20px;
 	height: 20px;
 }
 
-.stripeform button .tailspin{
+.stripecontainer .stripeform button .tailspin{
 	width: 20px;
 	height: 20px;
 }
 
-.stripeform button .tailspin path{
+.stripecontainer .stripeform button .tailspin path{
 	stroke: #fff;
 }
 
-.stripeform button .checkmark{
+.stripecontainer .stripeform button .checkmark{
 	width: 20px;
 	height: 20px;
 	margin: 0;
 }
 
 /* Payment messages */
-.stripeform #payment-message{
+.stripecontainer .stripeform #payment-message{
 	color: #374151;
 	margin: 0px 0px 20px 0px;
 	text-align: left;
@@ -220,25 +192,25 @@
 	line-height: 1.5;
 }
 
-.stripeform #payment-message.success {
+.stripecontainer .stripeform #payment-message.success {
 	background: #f0fdf4;
 	border-color: #bbf7d0;
 	color: #15803d;
 }
 
-.stripeform #payment-message.error {
+.stripecontainer .stripeform #payment-message.error {
 	background: #fef2f2;
 	border-color: #fecaca;
 	color: #dc2626;
 }
 
-.stripeform #payment-message a{
+.stripecontainer .stripeform #payment-message a{
 	color: inherit;
 	font-weight: 500;
 	text-decoration: underline;
 }
 
-.stripeform #payment-message a:hover{
+.stripecontainer .stripeform #payment-message a:hover{
 	text-decoration: none;
 }
 
@@ -253,7 +225,7 @@
 		padding: 16px 0;
 	}
 	
-	.stripeform button {
+	.stripecontainer .stripeform button {
 		width: 100%;
 		margin: 16px 0 0 0;
 	}

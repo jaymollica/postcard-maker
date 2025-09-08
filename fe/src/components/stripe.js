@@ -273,12 +273,12 @@ const CheckoutForm = (props) => {
       }).format(cost / 100)}</h2>
       <div className="description">Complete your payment to send your postcard. Shipping rates may vary by location.</div>
       
+      {/* Show any error or success messages */}
+      {message && (
+        <div id="payment-message" className={messageType} dangerouslySetInnerHTML={{ __html: message }}></div>
+      )}
+      
       <form className="stripeform" onSubmit={handleSubmit}>
-        {/* Show any error or success messages */}
-        {message && (
-          <div id="payment-message" className={messageType} dangerouslySetInnerHTML={{ __html: message }}></div>
-        )}
-        
         {/* Email field */}
         <div className="email-field">
           <label htmlFor='email'>
