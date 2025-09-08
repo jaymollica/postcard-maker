@@ -2,12 +2,7 @@ import { TailSpin } from 'svg-loaders-react';
 
 export const ButtonLabelVerify = function(str){
     return (
-        <>
-            <span>{str}</span>
-            <svg width="23" height="14" xmlns="http://www.w3.org/2000/svg" className="icon-arrow">
-                <path d="M17.001 0L23 6.069v1.848L17 14l-.995-.997 5.077-5.146v-.125H.652V6.268h20.43v-.125l-5.076-5.139L17.001 0z" fill="#2F2F2F"></path>
-            </svg>
-        </>
+        <span>{str}</span>
     );
 }
 

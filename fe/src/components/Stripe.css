@@ -97,9 +97,17 @@
 	display: block;
 }
 
-/* Minimal Stripe Elements styling - don't interfere */
+/* Minimal Stripe Elements styling - match other fields */
 .stripecontainer .StripeElement{
-	margin-bottom: 20px;
+	background: rgb(255, 255, 255);
+	border: 1px solid rgb(204, 204, 204);
+	borderRadius: 4px;
+	boxSizing: border-box;
+	minHeight: 38px;
+	outline: 0px;
+	padding: 0px 8px;
+	width: 100%;
+	marginBottom: auto;
 }
 
 /* Payment button styling - very specific */

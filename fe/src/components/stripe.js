@@ -280,12 +280,23 @@ const CheckoutForm = (props) => {
       
       <form className="stripeform" onSubmit={handleSubmit}>
         {/* Email field */}
-        <div className="email-field">
-          <label htmlFor='email'>
-            Email Address
-            <br /><small>We'll send your receipt here</small>
+        <div style={{display: 'flex', flexDirection: 'row', marginBottom: '1em'}}>
+          <label style={{alignSelf: 'center', minWidth: '5em', marginRight: '1em', textAlign: 'end'}} htmlFor='email'>
+            Email<br /><small>(for receipt)</small>
           </label>
           <input
+            style={{ 
+              backgroundColor: 'rgb(255, 255, 255)',
+              border: '1px solid rgb(204, 204, 204)',
+              borderRadius: '4px',
+              boxSizing: 'border-box',
+              minHeight: '38px',
+              outline: '0px',
+              padding: '0px 8px',
+              width: '100%',
+              marginBottom: 'auto',
+
+            }}
             type="email"
             id='email'
             onChange={ e => {

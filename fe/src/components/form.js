@@ -102,11 +102,23 @@ export default function Form(props){
 					onSubmit={submitHandler}
 					submitButtonLabel={addressVerified ? ButtonLabelVerified('Address Verified') : (verifying ? ButtonLabelVerifying('Verifying Address') : ButtonLabelVerify('Verify Address'))}
 				>
-					<div className="form-field">
-						<label htmlFor='full_name'>
-							Full Name
+					<div style={{display: 'flex', flexDirection: 'row', marginBottom: '1em'}}>
+						<label style={{alignSelf: 'center', minWidth: '5em', marginRight: '1em', textAlign: 'end'}} htmlFor='full_name'>
+							Full name
 						</label>
 						<input
+							style={{ 
+								backgroundColor: 'rgb(255, 255, 255)',
+								border: '1px solid rgb(204, 204, 204)',
+								borderRadius: '4px',
+								boxSizing: 'border-box',
+								minHeight: '38px',
+								outline: '0px',
+								padding: '0px 8px',
+								width: '100%',
+								marginBottom: 'auto',
+
+							}}
 							id='full_name'
 							onChange={ e => {
 								setFullName(e.target.value)
