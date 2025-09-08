@@ -65,39 +65,20 @@
 	color: #94a3b8;
 }
 
-/* Promo code styling - very specific */
+/* Promo code styling - match other fields exactly */
 .stripecontainer .stripeform-promo{
+	backgroundColor: rgb(255, 255, 255);
+	border: 1px solid rgb(204, 204, 204);
+	borderRadius: 4px;
+	boxSizing: border-box;
+	minHeight: 38px;
+	outline: 0px;
+	padding: 0px 8px;
 	width: 100%;
-	box-sizing: border-box;
-	padding: 16px;
-	outline: none;
-	font-size: 15px;
-	border: 1.5px solid #e2e8f0;
-	border-radius: 8px;
-	background: #ffffff;
-	transition: all 0.2s ease;
-	margin-bottom: 20px;
+	marginBottom: auto;
 }
 
-.stripecontainer .stripeform-promo:focus {
-	border-color: #3b82f6;
-	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.stripecontainer .stripeform-promo::placeholder {
-	color: #94a3b8;
-}
-
-/* Card element label */
-.stripecontainer .card-label {
-	font-weight: 500;
-	color: #374151;
-	font-size: 14px;
-	margin-bottom: 8px;
-	display: block;
-}
-
-/* Minimal Stripe Elements styling - match other fields */
+/* Stripe Elements styling - match other fields exactly */
 .stripecontainer .StripeElement{
 	background: rgb(255, 255, 255);
 	border: 1px solid rgb(204, 204, 204);
