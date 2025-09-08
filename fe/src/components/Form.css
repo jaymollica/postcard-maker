@@ -1,3 +1,4 @@
+/* Main form container */
 .addressform{
 	max-width: 800px;
 	margin: 0 auto;
@@ -21,28 +22,48 @@
 	line-height: 1.5;
 }
 
-.addressform-messages{
-	padding-top: 0px;
-	padding-bottom: 20px;
-	text-align: left;
-	min-height: 20px;
-}
-
-.addressform-messages.error{
-	color: #ef4444;
+/* Status indicator - our custom component */
+.status-indicator {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
 	font-size: 14px;
 	font-weight: 500;
+	margin-bottom: 20px;
+	padding: 12px 16px;
+	border-radius: 8px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
 }
 
-.addressform-messages.success{
-	color: #22c55e;
-	font-size: 14px;
+.status-indicator.success {
+	background: #f0fdf4;
+	border-color: #bbf7d0;
+	color: #15803d;
+}
+
+.status-indicator.error {
+	background: #fef2f2;
+	border-color: #fecaca;
+	color: #dc2626;
+}
+
+/* Our custom form field styling - only for our own inputs */
+.form-field {
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 20px;
+}
+
+.form-field label {
 	font-weight: 500;
+	color: #374151;
+	font-size: 14px;
+	margin-bottom: 6px;
+	display: block;
 }
 
-/* Modern form styling */
-.addressform input, 
-.addressform div[class*="css-"] {
+.form-field input {
 	background: #ffffff;
 	border: 1.5px solid #e2e8f0;
 	border-radius: 8px;
@@ -53,24 +74,18 @@
 	width: 100%;
 	font-size: 15px;
 	transition: all 0.2s ease;
-	margin-bottom: 16px;
 }
 
-.addressform input:focus,
-.addressform div[class*="css-"]:focus-within {
+.form-field input:focus {
 	border-color: #3b82f6;
 	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.addressform label {
-	font-weight: 500;
-	color: #374151;
-	font-size: 14px;
-	margin-bottom: 6px;
-	display: block;
+.form-field input::placeholder {
+	color: #94a3b8;
 }
 
-/* Modern button styling */
+/* Button styling - only for our custom buttons */
 .addressform button{
 	font-weight: 600;
 	border: none;
@@ -111,6 +126,7 @@
 .addressform.verified button:hover{
 	background: #22c55e;
 	transform: none;
+	box-shadow: none;
 }
 
 .addressform button span{
@@ -185,66 +201,9 @@
 	}
 }
 
-/* Form layout improvements */
-.form-field {
-	display: flex;
-	flex-direction: column;
-	margin-bottom: 20px;
-}
-
-.form-field label {
-	margin-bottom: 6px;
-}
-
-.form-field small {
-	color: #64748b;
-	font-size: 12px;
-	font-weight: normal;
-}
-
-/* React Select component styling overrides */
+/* Keep original styling for LOB components - don't override */
 .addressform div[class*="css-"][class*="-option"] span{
-	color: #64748b;
+	color: rgb(136, 136, 136);
 }
 
-.addressform div[class*="css-"][class*="-control"] {
-	border: 1.5px solid #e2e8f0 !important;
-	border-radius: 8px !important;
-	min-height: 44px !important;
-	box-shadow: none !important;
-}
-
-.addressform div[class*="css-"][class*="-control"]:hover {
-	border-color: #cbd5e1 !important;
-}
-
-.addressform div[class*="css-"][class*="-control--is-focused"] {
-	border-color: #3b82f6 !important;
-	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
-}
-
-/* Status indicator */
-.status-indicator {
-	display: inline-flex;
-	align-items: center;
-	gap: 8px;
-	font-size: 14px;
-	font-weight: 500;
-	margin-top: 12px;
-	padding: 8px 12px;
-	border-radius: 6px;
-	background: #f8fafc;
-	border: 1px solid #e2e8f0;
-}
-
-.status-indicator.success {
-	background: #f0fdf4;
-	border-color: #bbf7d0;
-	color: #15803d;
-}
-
-.status-indicator.error {
-	background: #fef2f2;
-	border-color: #fecaca;
-	color: #dc2626;
-}
+/* Leave LOB AddressForm components unstyled to preserve their functionality */
