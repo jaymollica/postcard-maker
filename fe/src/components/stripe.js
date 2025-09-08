@@ -87,6 +87,19 @@ const CheckoutForm = (props) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    // Validate email before processing payment
+    if( props.email.length === 0 ){
+      setMessage('Email is required for receipt');
+      return;
+    }
+    else if( props.email.match(
+      // eslint-disable-next-line no-useless-escape
+      /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    ) === null ){
+      setMessage('Email is invalid');
+      return;
+    }
+
     if (elements == null) {
       return;
     }
@@ -110,6 +123,7 @@ const CheckoutForm = (props) => {
             card: elements.getElement(CardElement),
             billing_details: {
               name: props.billingDetails.name,
+              email: props.email, // Use email from props
               address: {
                 city: props.billingDetails.city,
                 state: props.billingDetails.state,
@@ -251,6 +265,33 @@ const CheckoutForm = (props) => {
     <form className="stripeform" onSubmit={handleSubmit}>
       {/* Show any error or success messages */}
       {message && <div id="payment-message" dangerouslySetInnerHTML={{ __html: message }}></div>}
+      
+      {/* Email field */}
+      <div style={{display: 'flex', flexDirection: 'row', marginBottom: '1em'}}>
+        <label style={{alignSelf: 'center', minWidth: '5em', marginRight: '1em', textAlign: 'end'}} htmlFor='email'>
+          Email<br /><small>(for receipt)</small>
+        </label>
+        <input
+          style={{ 
+            backgroundColor: 'rgb(255, 255, 255)',
+            border: '1px solid rgb(204, 204, 204)',
+            borderRadius: '4px',
+            boxSizing: 'border-box',
+            minHeight: '38px',
+            outline: '0px',
+            padding: '0px 8px',
+            width: '100%',
+            marginBottom: 'auto',
+          }}
+          type="email"
+          id='email'
+          onChange={ e => {
+            props.setEmail(e.target.value)
+          } }
+          value={props.email}
+        />
+      </div>
+
       <input type="text" name="promo" className="stripeform-promo" placeholder="Promo code" onChange={ promoChangeHandler } />
       {cost >= 50 && <CardElement />}
       <button type="submit" className={isLoading ? 'loading' : (paymentSuccessful ? 'paid' : "")} disabled={isLoading || !stripe || !elements || paymentSuccessful}>
@@ -268,7 +309,12 @@ export default function Stripe(props) {
     return (
 
       <Elements stripe={stripePromise} options={{ clientSecret : props.elementsOptions.paymentIntent.clientSecret }}>
-        <CheckoutForm billingDetails={props.billingDetails} paymentIntent={ props.elementsOptions.paymentIntent } />
+        <CheckoutForm 
+          billingDetails={props.billingDetails} 
+          paymentIntent={ props.elementsOptions.paymentIntent }
+          email={props.email}
+          setEmail={props.setEmail}
+        />
       </Elements>
     );
   }

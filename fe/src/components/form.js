@@ -10,7 +10,7 @@ export default function Form(props){
 	const [address, setAddress] = useState({})
 	const [messages, setMessages] = useState('')
 	const [verifying, setVerifying] = useState(false)	
-	const {email, setEmail, fullName, setFullName, setBillingDetails, postcardGenerated, setAddressVerified, addressVerified} = props;
+	const {fullName, setFullName, setBillingDetails, postcardGenerated, setAddressVerified, addressVerified} = props;
 
 
 	const handleFieldChange = (payload) => {
@@ -30,17 +30,6 @@ export default function Form(props){
 			setMessages('Full name is missing');
 			setVerifying(false);
 		}
-		else if( email.length === 0 ){
-			setMessages('Email is missing');
-			setVerifying(false);
-		}
-		else if( email.length !== 0 && email.match(
-			// eslint-disable-next-line no-useless-escape
-			/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-		  ) === null ){
-			setMessages('Email is invalid');
-			setVerifying(false);
-		}
 		else{
 			setMessages('')
 			verify(lob_publishable_api_key_live, address).then((verificationResult) => {
@@ -54,8 +43,7 @@ export default function Form(props){
 						city: verificationResult.components.city,
 						state: verificationResult.components.state,
 						postal_code: verificationResult.components.zip_code,
-						name: fullName,
-						email: email // Add this line
+						name: fullName
 					});
 				}
 				else{
@@ -104,31 +92,6 @@ export default function Form(props){
 								setFullName(e.target.value)
 							} }
 							value={fullName}
-						/>
-					</div>
-					<div style={{display: 'flex', flexDirection: 'row', marginBottom: '1em'}}>
-						<label style={{alignSelf: 'center', minWidth: '5em', marginRight: '1em', textAlign: 'end'}} htmlFor='email'>
-							Email<br /><small>(for receipt)</small>
-						</label>
-						<input
-							style={{ 
-								backgroundColor: 'rgb(255, 255, 255)',
-								border: '1px solid rgb(204, 204, 204)',
-								borderRadius: '4px',
-								boxSizing: 'border-box',
-								minHeight: '38px',
-								outline: '0px',
-								padding: '0px 8px',
-								width: '100%',
-								marginBottom: 'auto',
-
-							}}
-							type="email"
-							id='email'
-							onChange={ e => {
-								setEmail(e.target.value)
-							} }
-							value={email}
 						/>
 					</div>
 				</AddressForm>
