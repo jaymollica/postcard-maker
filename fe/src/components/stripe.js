@@ -314,15 +314,37 @@ const CheckoutForm = (props) => {
         <input 
           type="text" 
           name="promo" 
-          className="stripeform-promo" 
+          style={{ 
+            backgroundColor: 'rgb(255, 255, 255)',
+            border: '1px solid rgb(204, 204, 204)',
+            borderRadius: '4px',
+            boxSizing: 'border-box',
+            minHeight: '38px',
+            outline: '0px',
+            padding: '0px 8px',
+            width: '100%',
+            marginBottom: 'auto',
+          }}
           placeholder="Promo code (optional)" 
           onChange={ promoChangeHandler } 
         />
         
         {cost >= 50 && (
           <>
-            <label className="card-label">Card Information</label>
-            <CardElement />
+            <label style={{alignSelf: 'center', minWidth: '5em', marginRight: '1em', textAlign: 'end'}}>Card Information</label>
+            <CardElement 
+              options={{
+                style: {
+                  base: {
+                    fontSize: '16px',
+                    color: '#424770',
+                    '::placeholder': {
+                      color: '#aab7c4',
+                    },
+                  },
+                },
+              }}
+            />
           </>
         )}
         

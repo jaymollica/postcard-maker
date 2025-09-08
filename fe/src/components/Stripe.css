@@ -65,30 +65,17 @@
 	color: #94a3b8;
 }
 
-/* Promo code styling - match other fields exactly */
-.stripecontainer .stripeform-promo{
-	backgroundColor: rgb(255, 255, 255);
-	border: 1px solid rgb(204, 204, 204);
-	borderRadius: 4px;
-	boxSizing: border-box;
-	minHeight: 38px;
-	outline: 0px;
-	padding: 0px 8px;
-	width: 100%;
-	marginBottom: auto;
-}
-
-/* Stripe Elements styling - match other fields exactly */
+/* Stripe Elements styling - match other fields exactly with inline styles */
 .stripecontainer .StripeElement{
-	background: rgb(255, 255, 255);
-	border: 1px solid rgb(204, 204, 204);
-	borderRadius: 4px;
-	boxSizing: border-box;
-	minHeight: 38px;
-	outline: 0px;
-	padding: 0px 8px;
-	width: 100%;
-	marginBottom: auto;
+	background: rgb(255, 255, 255) !important;
+	border: 1px solid rgb(204, 204, 204) !important;
+	borderRadius: 4px !important;
+	boxSizing: border-box !important;
+	minHeight: 38px !important;
+	outline: 0px !important;
+	padding: 0px 8px !important;
+	width: 100% !important;
+	marginBottom: auto !important;
 }
 
 /* Payment button styling - very specific */
