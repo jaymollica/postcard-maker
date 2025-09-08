@@ -331,7 +331,7 @@ const CheckoutForm = (props) => {
         
         {cost >= 50 && (
           <>
-            <label style={{alignSelf: 'center', minWidth: '5em', marginRight: '1em', textAlign: 'end'}}>Card Information</label>
+            <label style={{alignSelf: 'center', minWidth: '5em', marginRight: '1em', textAlign: 'end'}}></label>
             <CardElement 
               options={{
                 style: {
