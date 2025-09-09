@@ -92,7 +92,7 @@ class MailchimpService {
         <div style='max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;'>
             <div style='background: #0078d4; color: white; padding: 40px 20px; text-align: center;'>
                 <h1>Your Postcard is on its way!</h1>
-                <p>Thanks for using CC0 Postcards, " . htmlspecialchars($senderData['name'] ?? '') . "</p>
+                <p>Thanks for using CC0 Postcards</p>
             </div>
             <div style='padding: 20px;'>
                 <div style='background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 16px; margin-bottom: 20px;'>
@@ -104,11 +104,11 @@ class MailchimpService {
                 <p><strong>Estimated Delivery:</strong> " . $deliveryEstimate . "</p>
                 <div style='margin: 20px 0;'>
                     <a href='" . htmlspecialchars($lobData['url'] ?? '#') . "' style='display: inline-block; background: #0078d4; color: white; padding: 10px 20px; text-decoration: none; margin-right: 10px; border-radius: 4px;'>View Postcard PDF</a>
-                    <a href='" . htmlspecialchars($trackingUrl) . "' style='display: inline-block; background: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;'>Track Your Postcard</a>
                 </div>
                 <div style='margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666;'>
                     <p><strong>Need help?</strong></p>
                     <ul style='margin: 5px 0; padding-left: 20px;'>
+                        <li>For questions about the service email <strong><a href='mailto:support@sweetpost.art'>support@sweetpost.art</a></strong></li>
                         <li>For refunds or billing issues, reference: <strong>" . htmlspecialchars($paymentIntentId) . "</strong></li>
                         <li>For delivery issues, reference: <strong>" . htmlspecialchars($postcardId) . "</strong></li>
                     </ul>
