@@ -1,7 +1,6 @@
 import './Stripe.css';
 import React, { useState } from 'react';
 import {loadStripe} from '@stripe/stripe-js';
-import debounce from 'lodash.debounce';
 import {
   CardElement,
   Elements,
@@ -23,6 +22,8 @@ const CheckoutForm = (props) => {
   const [ messageType, setMessageType ] = useState(''); // 'error', 'success', or ''
   const [ paymentSuccessful, setPaymentSuccessful ] = useState(false);
   const [ promoCode, setPromoCode] = useState({});
+  const [ promoInput, setPromoInput ] = useState(''); // New state for input value
+  const [ promoValidating, setPromoValidating ] = useState(false); // New state for validation loading
   const [ cost, setCost ] = useState(defaultCost);
 
   const setMessageWithType = (msg, type = '') => {
@@ -92,6 +93,99 @@ const CheckoutForm = (props) => {
     }
   }
 
+  const validatePromoCode = async () => {
+    if (promoInput.trim().length === 0) {
+      setMessageWithType('Please enter a promo code', 'error');
+      return;
+    }
+
+    setPromoValidating(true);
+    setMessageWithType('');
+
+    const promoBody = {
+      promo: promoInput.trim(),
+      nonce: document.querySelector('input[name="nonce"]').value,
+      paymentIntent: props.paymentIntent
+    };
+
+    try {
+      const promoResponse = await fetch(process.env.REACT_APP_BACKEND_URL + '/promo', {
+        method: "POST",
+        body: JSON.stringify(promoBody),
+        mode: 'cors',
+        credentials: 'same-origin',
+        cache: 'no-cache',
+        redirect: 'follow',
+        headers: {
+          'Access-Control-Allow-Origin': process.env.REACT_APP_FRONTEND_ORIGIN,
+          "Content-Type": "application/json"
+        }
+      });
+      
+      const promoResponseDecoded = await promoResponse.json();
+
+      if (promoResponseDecoded.result === 'error') {
+        setMessageWithType(promoResponseDecoded.message, 'error');
+        setCost(defaultCost);
+        setPromoCode({});
+      } else if (promoResponseDecoded.active) {
+        setPromoCode(promoResponseDecoded);
+        setMessageWithType('Promo code applied successfully!', 'success');
+
+        // Calculate new cost
+        let newCost = defaultCost;
+        if (promoResponseDecoded.coupon.percent_off !== null) {
+          newCost = defaultCost - (defaultCost * (promoResponseDecoded.coupon.percent_off / 100));
+        } else if (promoResponseDecoded.coupon.amount_off !== null) {
+          newCost = defaultCost - promoResponseDecoded.coupon.amount_off;
+        }
+        
+        newCost = Math.max(0, newCost); // Ensure cost doesn't go below 0
+
+        setCost(newCost);
+
+        // Update payment intent with new cost
+        const stripeResponse = await fetch(process.env.REACT_APP_BACKEND_URL + "/stripe", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            'Access-Control-Allow-Origin': process.env.REACT_APP_FRONTEND_ORIGIN
+          },
+          body: JSON.stringify({
+            items: [{ id: "postcard-4x6" }],
+            nonce: promoBody.nonce,
+            cost: newCost,
+            promoCodeId: promoResponseDecoded.id
+          }),
+          mode: 'cors',
+          credentials: 'same-origin',
+          cache: 'no-cache',
+          redirect: 'follow'
+        });
+
+        const stripeResponseDecoded = await stripeResponse.json();
+        if (stripeResponseDecoded.clientSecret) {
+          props.setPaymentIntent(stripeResponseDecoded);
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      setMessageWithType('Error validating promo code. Please try again.', 'error');
+      setCost(defaultCost);
+      setPromoCode({});
+    } finally {
+      setPromoValidating(false);
+    }
+  };
+
+  const clearPromoCode = () => {
+    setPromoInput('');
+    setPromoCode({});
+    setCost(defaultCost);
+    setMessageWithType('');
+    // Reset payment intent to original cost
+    // You may want to call your backend to reset the payment intent here
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -177,94 +271,6 @@ const CheckoutForm = (props) => {
 
   };
 
-  const promoChangeHandler = debounce(async (e) => {
-    if( e.target.value.length === 0 ){
-      setMessageWithType('');
-      setCost(defaultCost);
-      return;
-    }
-
-    const promoBody = {
-      promo: e.target.value,
-      nonce : document.querySelector('input[name="nonce"]').value,
-      paymentIntent : props.paymentIntent
-    };
-    try {
-      
-      const promoResponse = await fetch(process.env.REACT_APP_BACKEND_URL + '/promo', {
-        method: "POST",
-        body: JSON.stringify(promoBody),
-        mode: 'cors', // no-cors, *cors, same-origin
-        credentials: 'same-origin', // include, *same-origin, omit
-        cache: 'no-cache',
-        redirect: 'follow',
-        headers: {
-          'Access-Control-Allow-Origin': process.env.REACT_APP_FRONTEND_ORIGIN,
-          "Content-Type": "application/json"
-        }
-      });
-      
-      const promoResponseDecoded = await promoResponse.json();
-
-      console.log(promoResponseDecoded);
-      setPromoCode({});
-
-      if( typeof promoResponseDecoded.result !== 'undefined' && promoResponseDecoded.result === 'error' ){
-        setMessageWithType(promoResponseDecoded.message, 'error');
-        setCost(defaultCost);
-      }
-      else if( promoResponseDecoded.active ){
-        setPromoCode(promoResponseDecoded);
-        setMessageWithType('Promo code applied successfully!', 'success');
-
-        let newCost = cost;
-
-        if( promoResponseDecoded.coupon.percent_off !== null ){
-          newCost = cost - (cost * (promoResponseDecoded.coupon.percent_off / 100));
-        }
-        else if( promoResponseDecoded.coupon.amount_off !== null ){
-          newCost = cost - promoResponseDecoded.coupon.amount_off;
-        }
-
-        if( newCost < 0 ){
-          newCost = 0;
-        }
-
-        setCost(newCost);
-
-        // make & set updated payment intent
-        const stripeResponse = await fetch(process.env.REACT_APP_BACKEND_URL + "/stripe", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            'Access-Control-Allow-Origin': process.env.REACT_APP_FRONTEND_ORIGIN
-          },
-          body: JSON.stringify({
-            items: [{ id: "postcard-4x6" }],
-            nonce: promoBody.nonce,
-            cost: newCost,
-            promoCodeId : promoResponseDecoded.id
-          }),
-          mode: 'cors', // no-cors, *cors, same-origin
-          credentials: 'same-origin', // include, *same-origin, omit
-          cache: 'no-cache',
-          redirect: 'follow'
-        });
-
-        const stripeResponseDecoded = await stripeResponse.json();
-
-        if( stripeResponseDecoded.clientSecret ){
-          props.setPaymentIntent(stripeResponseDecoded);
-        }
-      }
-    } catch (error) {
-      console.log(error);
-      setMessageWithType('Error validating promo code. Please try again.', 'error');
-    }
-
-
-  }, 300);
-
   return (
     <div className="stripecontainer">
       <h2 className="total">Total: {new Intl.NumberFormat('en-US', {
@@ -311,23 +317,74 @@ const CheckoutForm = (props) => {
           />
         </div>
 
-        <input 
-          type="text" 
-          name="promo" 
-          style={{ 
-            backgroundColor: 'rgb(255, 255, 255)',
-            border: '1px solid rgb(204, 204, 204)',
-            borderRadius: '4px',
-            boxSizing: 'border-box',
-            minHeight: '38px',
-            outline: '0px',
-            padding: '0px 8px',
-            width: '100%',
-            marginBottom: 'auto',
-          }}
-          placeholder="Promo code (optional)" 
-          onChange={ promoChangeHandler } 
-        />
+        {/* Promo code section */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '1em', alignItems: 'flex-end' }}>
+          <div style={{ flex: 1 }}>
+            <input 
+              type="text" 
+              value={promoInput}
+              onChange={(e) => setPromoInput(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  validatePromoCode();
+                }
+              }}
+              style={{ 
+                backgroundColor: 'rgb(255, 255, 255)',
+                border: '1px solid rgb(204, 204, 204)',
+                borderRadius: '4px',
+                boxSizing: 'border-box',
+                minHeight: '38px',
+                outline: '0px',
+                padding: '0px 8px',
+                width: '100%',
+                marginBottom: '0',
+              }}
+              placeholder="Enter promo code" 
+              disabled={promoValidating || Object.keys(promoCode).length > 0}
+            />
+          </div>
+          
+          {Object.keys(promoCode).length === 0 ? (
+            <button 
+              type="button"
+              onClick={validatePromoCode}
+              disabled={promoValidating || promoInput.trim().length === 0}
+              style={{
+                backgroundColor: promoValidating ? '#94a3b8' : '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '8px 16px',
+                minHeight: '38px',
+                cursor: promoValidating ? 'not-allowed' : 'pointer',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}
+            >
+              {promoValidating ? 'Validating...' : 'Apply'}
+            </button>
+          ) : (
+            <button 
+              type="button"
+              onClick={clearPromoCode}
+              style={{
+                backgroundColor: '#ef4444',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '8px 16px',
+                minHeight: '38px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}
+            >
+              Remove
+            </button>
+          )}
+        </div>
         
         {cost >= 50 && (
           <>
