@@ -74,6 +74,7 @@ require './controllers/LobController.php';
 require './controllers/AWSController.php';
 require './controllers/NonceController.php';
 require './controllers/EmailController.php';
+require './controllers/CostController.php';
 
 error_log("BE LOADING");
 
@@ -103,5 +104,6 @@ $server->addClass('LobController');
 $server->addClass('AWSController');
 $server->addClass('NonceController');
 $server->addClass('EmailController');
+$server->addClass('CostController');
 
 $server->handle();

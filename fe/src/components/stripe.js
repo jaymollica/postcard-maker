@@ -1,5 +1,5 @@
 import './Stripe.css';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {loadStripe} from '@stripe/stripe-js';
 import {
   CardElement,
@@ -12,9 +12,6 @@ import { ButtonLabelVerify, ButtonLabelVerifying, ButtonLabelVerified } from './
 
 
 const CheckoutForm = (props) => {
-  // cost is in USD cents (eg 100 = $1.00 USD)
-  const defaultCost = 80;
-
   const stripe = useStripe();
   const elements = useElements();
   const [ isLoading, setIsLoading ] = useState(false);
@@ -24,7 +21,51 @@ const CheckoutForm = (props) => {
   const [ promoCode, setPromoCode] = useState({});
   const [ promoInput, setPromoInput ] = useState(''); // New state for input value
   const [ promoValidating, setPromoValidating ] = useState(false); // New state for validation loading
-  const [ cost, setCost ] = useState(defaultCost);
+  const [ cost, setCost ] = useState(0); // Start with 0, will be set from backend
+  const [ defaultCost, setDefaultCost ] = useState(0); // Domain-specific default cost
+
+  // Get domain-specific cost on component mount
+  useEffect(() => {
+    const fetchDomainCost = async () => {
+      const urlSearchParams = new URLSearchParams(window.location.search);
+      const artistUrl = urlSearchParams.get('artistUrl');
+      
+      try {
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/cost', {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            'Access-Control-Allow-Origin': process.env.REACT_APP_FRONTEND_ORIGIN
+          },
+          body: JSON.stringify({
+            artistUrl: artistUrl,
+            nonce: document.querySelector('input[name="nonce"]').value
+          }),
+          mode: 'cors',
+          credentials: 'same-origin',
+          cache: 'no-cache',
+          redirect: 'follow'
+        });
+        
+        const data = await response.json();
+        if (data.cost) {
+          setDefaultCost(data.cost);
+          setCost(data.cost);
+        } else {
+          // Fallback to 80 cents if no cost returned
+          setDefaultCost(80);
+          setCost(80);
+        }
+      } catch (error) {
+        console.error('Error fetching domain cost:', error);
+        // Fallback to 80 cents if error
+        setDefaultCost(80);
+        setCost(80);
+      }
+    };
+
+    fetchDomainCost();
+  }, []);
 
   const setMessageWithType = (msg, type = '') => {
     setMessage(msg);
@@ -102,10 +143,14 @@ const CheckoutForm = (props) => {
     setPromoValidating(true);
     setMessageWithType('');
 
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    const artistUrl = urlSearchParams.get('artistUrl');
+
     const promoBody = {
       promo: promoInput.trim(),
       nonce: document.querySelector('input[name="nonce"]').value,
-      paymentIntent: props.paymentIntent
+      paymentIntent: props.paymentIntent,
+      artistUrl: artistUrl // Include artistUrl for domain-specific calculations
     };
 
     try {
@@ -131,7 +176,7 @@ const CheckoutForm = (props) => {
       } else if (promoResponseDecoded.active) {
         setPromoCode(promoResponseDecoded);
 
-        // Calculate new cost
+        // Calculate new cost using domain-specific default
         let newCost = defaultCost;
         if (promoResponseDecoded.coupon.percent_off !== null) {
           newCost = defaultCost - (defaultCost * (promoResponseDecoded.coupon.percent_off / 100));
@@ -154,7 +199,8 @@ const CheckoutForm = (props) => {
             items: [{ id: "postcard-4x6" }],
             nonce: promoBody.nonce,
             cost: newCost,
-            promoCodeId: promoResponseDecoded.id
+            promoCodeId: promoResponseDecoded.id,
+            artistUrl: artistUrl // Include artistUrl for domain-specific processing
           }),
           mode: 'cors',
           credentials: 'same-origin',
@@ -163,7 +209,7 @@ const CheckoutForm = (props) => {
         });
 
         const stripeResponseDecoded = await stripeResponse.json();
-        if (stripeResponseDecoded.clientSecret) {
+        if (stripeResponseDecoded.client_secret) {
           props.setPaymentIntent(stripeResponseDecoded);
         }
       }
@@ -267,6 +313,17 @@ const CheckoutForm = (props) => {
     setIsLoading(false);
 
   };
+
+  // Show loading state while fetching cost
+  if (defaultCost === 0) {
+    return (
+      <div className="stripecontainer">
+        <div style={{ textAlign: 'center', padding: '20px' }}>
+          Loading pricing information...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="stripecontainer">
