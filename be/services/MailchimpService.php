@@ -39,8 +39,19 @@ class MailchimpService {
     }
     
     private function sendTransactionalEmail($postcardData, $senderData, $lobData) {
-
         $deliveryEstimate = $this->calculateDeliveryEstimate($lobData['date_created']);
+        
+        // Calculate actual cost paid (after promo codes)
+        $originalCost = 80; // default cost in cents
+        $actualCost = $lobData['cost'] ?? $originalCost;
+        $promoApplied = $actualCost < $originalCost;
+        
+        // Build cost display
+        $costDisplay = '$' . number_format($actualCost / 100, 2);
+        if ($promoApplied) {
+            $savings = $originalCost - $actualCost;
+            $costDisplay .= ' <span style="color: #28a745;">(Promo applied - saved $' . number_format($savings / 100, 2) . ')</span>';
+        }
 
         // Build inline HTML instead of using template
         $htmlContent = "
@@ -50,19 +61,16 @@ class MailchimpService {
                 <p>Thanks for using CC0 Postcards, " . ($senderData['name'] ?? '') . "</p>
             </div>
             <div style='padding: 20px;'>
-                <p><strong>Cost:</strong> $" . number_format(($lobData['cost'] ?? 80) / 100, 2) . "</p>
+                <p><strong>Order ID:</strong> " . ($lobData['id'] ?? 'N/A') . "</p>
+                <p><strong>Cost:</strong> " . $costDisplay . "</p>
                 <p><strong>Estimated Delivery:</strong> " . $deliveryEstimate . "</p>
-                <p><a href='" . ($lobData['url'] ?? '#') . "'>Track Your Postcard</a></p>
+                <div style='margin: 20px 0;'>
+                    <a href='" . ($lobData['url'] ?? '#') . "' style='display: inline-block; background: #0078d4; color: white; padding: 10px 20px; text-decoration: none; margin-right: 10px; border-radius: 4px;'>View Postcard</a>
+                    <a href='" . ($lobData['tracking_url'] ?? '#') . "' style='display: inline-block; background: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;'>Track Your Postcard</a>
+                </div>
             </div>
         </div>";
 
-        // // Render template first
-        // $renderedTemplate = $this->transactional->templates->render([
-        //     'template_name' => 'postcard-receipt-1',
-        //     'template_content' => [],
-        //     'merge_vars' => $mergeVars
-        // ]);
-        
         $messageData = [
             'subject' => 'Your CC0 Postcard Receipt & Tracking 📮',
             'from_email' => 'do-not-reply@sweetpost.art',
@@ -74,19 +82,18 @@ class MailchimpService {
             'global_merge_vars' => [
                 ['name' => 'SENDER_NAME', 'content' => $senderData['name'] ?? ''],
                 ['name' => 'POSTCARD_IMAGE', 'content' => $postcardData['front_image'] ?? ''],
-                ['name' => 'TRACKING_URL', 'content' => $lobData['url'] ?? ''],
+                ['name' => 'PDF_URL', 'content' => $lobData['url'] ?? ''],
+                ['name' => 'TRACKING_URL', 'content' => $lobData['tracking_url'] ?? ''],
                 ['name' => 'DELIVERY_DATE', 'content' => $deliveryEstimate],
-                ['name' => 'COST', 'content' => '$' . number_format(($lobData['cost'] ?? 80) / 100, 2)],
+                ['name' => 'COST_DISPLAY', 'content' => $costDisplay],
+                ['name' => 'POSTCARD_ID', 'content' => $lobData['id'] ?? 'N/A'],
+                ['name' => 'PAYMENT_ID', 'content' => $lobData['payment_intent_id'] ?? 'N/A'],
                 ['name' => 'ARTWORK_TITLE', 'content' => $postcardData['artworkTitle'] ?? ''],
                 ['name' => 'ARTWORK_ARTIST', 'content' => $postcardData['artworkArtist'] ?? ''],
                 ['name' => 'ARTWORK_MUSEUM', 'content' => $postcardData['artworkMuseum'] ?? '']
             ],
             'html' => $htmlContent,
-            //'template_name' => 'postcard-receipt',
-            //'template_content' => []
         ];
-
-
         
         try {
             $result = $this->transactional->messages->send(['message' => $messageData]);

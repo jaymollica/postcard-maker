@@ -30,21 +30,23 @@ class LobController
                 $payment_intent = $stripe->paymentIntents->retrieve($payment_intent_id);
                 
                 global $default_cost;
+                $actual_cost = $default_cost; // Default cost
+                
                 if( isset($data->promo->active) && $data->promo->active ){
-            
                     if( $data->promo->coupon->percent_off !== null ){
-                      $new_cost = $default_cost - ($default_cost * ($data->promo->coupon->percent_off / 100));
+                      $actual_cost = $default_cost - ($default_cost * ($data->promo->coupon->percent_off / 100));
                     }
                     else if( $data->promo->coupon->amount_off !== null ){
-                      $new_cost = $default_cost - $data->promo->coupon->amount_off;
+                      $actual_cost = $default_cost - $data->promo->coupon->amount_off;
                     }
         
-                    if( $new_cost < 0 ){
-                      $new_cost = 0;
+                    if( $actual_cost < 0 ){
+                      $actual_cost = 0;
                     }
                 }
+                
                 // Check if the payment intent has succeeded or if it's a sorta free item
-                if ($payment_intent->status === 'succeeded' || $new_cost < 50) {
+                if ($payment_intent->status === 'succeeded' || $actual_cost < 50) {
                     
                     $merge_variables = $data->merge_variables ?? (object) array();
 
@@ -129,16 +131,21 @@ class LobController
                             ];
                             
                             $senderData = [
-                                'email' => $data->to->email ?? '', // This was missing!
+                                'email' => $data->to->email ?? '', 
                                 'name' => $data->to->name ?? '',
                                 'first_name' => explode(' ', $data->to->name ?? '')[0] ?? '',
                                 'last_name' => explode(' ', $data->to->name ?? '')[1] ?? ''
                             ];
 
+                            // Add the actual cost and payment intent ID to the Lob result before passing to email
+                            $result['cost'] = $actual_cost;
+                            $result['payment_intent_id'] = $payment_intent_id;
+
                             error_log('=== EMAIL DATA DEBUG ===');
                             error_log('$data->to: ' . json_encode($data->to ?? 'MISSING'));
                             error_log('$data->merge_variables: ' . json_encode($data->merge_variables ?? 'MISSING'));
                             error_log('$result from Lob: ' . json_encode($result));
+                            error_log('$actual_cost: ' . $actual_cost);
                             
                             $emailResult = $mailchimpService->sendPostcardReceipt(
                                 $postcardData,
@@ -160,7 +167,7 @@ class LobController
                         // send mixpanel on success
                         $mp->track('Purchase', array(
                             'project' => $domain_vars->url,
-                            'cost' => $data->cost,
+                            'cost' => $actual_cost, // Use actual cost for analytics too
                             'promo' => $data->promo,
                         ));
                         
