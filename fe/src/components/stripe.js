@@ -130,7 +130,6 @@ const CheckoutForm = (props) => {
         setPromoCode({});
       } else if (promoResponseDecoded.active) {
         setPromoCode(promoResponseDecoded);
-        setMessageWithType('Promo code applied successfully!', 'success');
 
         // Calculate new cost
         let newCost = defaultCost;
