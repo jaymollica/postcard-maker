@@ -39,6 +39,11 @@ class MailchimpService {
     }
     
     private function sendTransactionalEmail($postcardData, $senderData, $lobData) {
+        error_log('=== MAILCHIMP SERVICE DEBUG ===');
+        error_log('Received lobData: ' . json_encode($lobData));
+        error_log('Received senderData: ' . json_encode($senderData));
+        error_log('Received postcardData: ' . json_encode($postcardData));
+        
         $deliveryEstimate = $this->calculateDeliveryEstimate($lobData['date_created']);
         
         // Calculate actual cost paid (after promo codes)
@@ -53,23 +58,66 @@ class MailchimpService {
             $costDisplay .= ' <span style="color: #28a745;">(Promo applied - saved $' . number_format($savings / 100, 2) . ')</span>';
         }
 
-        // Build inline HTML instead of using template
+        // Get payment intent ID
+        $paymentIntentId = $lobData['payment_intent_id'] ?? 'N/A';
+        $postcardId = $lobData['id'] ?? 'N/A';
+        
+        error_log('Payment Intent ID extracted: ' . $paymentIntentId);
+        error_log('Postcard ID: ' . $postcardId);
+        
+        // Build tracking URL - try multiple approaches
+        $trackingUrl = '#'; // Default fallback
+        
+        // First, try to use the tracking_url from Lob API if available
+        if (isset($lobData['tracking_url']) && !empty($lobData['tracking_url'])) {
+            $trackingUrl = $lobData['tracking_url'];
+            error_log('Using Lob provided tracking URL: ' . $trackingUrl);
+        } 
+        // If no tracking_url, try to construct one using the tracking_events URL pattern
+        else if (isset($lobData['tracking_events']) && !empty($postcardId) && $postcardId !== 'N/A') {
+            $trackingUrl = "https://dashboard.lob.com/#/postcards/{$postcardId}";
+            error_log('Constructed dashboard tracking URL: ' . $trackingUrl);
+        }
+        // Last resort - use a generic tracking page if postcard ID exists
+        else if (!empty($postcardId) && $postcardId !== 'N/A') {
+            $trackingUrl = "https://lob.com/resources/guides/tracking";
+            error_log('Using generic tracking guide URL: ' . $trackingUrl);
+        }
+        
+        error_log('Final tracking URL: ' . $trackingUrl);
+        error_log('PDF URL: ' . ($lobData['url'] ?? 'MISSING'));
+
+        // Build inline HTML with both IDs clearly displayed
         $htmlContent = "
         <div style='max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;'>
             <div style='background: #0078d4; color: white; padding: 40px 20px; text-align: center;'>
                 <h1>Your Postcard is on its way!</h1>
-                <p>Thanks for using CC0 Postcards, " . ($senderData['name'] ?? '') . "</p>
+                <p>Thanks for using CC0 Postcards, " . htmlspecialchars($senderData['name'] ?? '') . "</p>
             </div>
             <div style='padding: 20px;'>
-                <p><strong>Order ID:</strong> " . ($lobData['id'] ?? 'N/A') . "</p>
+                <div style='background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 16px; margin-bottom: 20px;'>
+                    <p style='margin: 0 0 8px 0; font-weight: bold;'>Order References:</p>
+                    <p style='margin: 0 0 4px 0;'><strong>Postcard ID:</strong> " . htmlspecialchars($postcardId) . "</p>
+                    <p style='margin: 0;'><strong>Payment Reference:</strong> " . htmlspecialchars($paymentIntentId) . "</p>
+                </div>
                 <p><strong>Cost:</strong> " . $costDisplay . "</p>
                 <p><strong>Estimated Delivery:</strong> " . $deliveryEstimate . "</p>
                 <div style='margin: 20px 0;'>
-                    <a href='" . ($lobData['url'] ?? '#') . "' style='display: inline-block; background: #0078d4; color: white; padding: 10px 20px; text-decoration: none; margin-right: 10px; border-radius: 4px;'>View Postcard</a>
-                    <a href='" . ($lobData['tracking_url'] ?? '#') . "' style='display: inline-block; background: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;'>Track Your Postcard</a>
+                    <a href='" . htmlspecialchars($lobData['url'] ?? '#') . "' style='display: inline-block; background: #0078d4; color: white; padding: 10px 20px; text-decoration: none; margin-right: 10px; border-radius: 4px;'>View Postcard PDF</a>
+                    <a href='" . htmlspecialchars($trackingUrl) . "' style='display: inline-block; background: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;'>Track Your Postcard</a>
+                </div>
+                <div style='margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666;'>
+                    <p><strong>Need help?</strong></p>
+                    <ul style='margin: 5px 0; padding-left: 20px;'>
+                        <li>For refunds or billing issues, reference: <strong>" . htmlspecialchars($paymentIntentId) . "</strong></li>
+                        <li>For delivery issues, reference: <strong>" . htmlspecialchars($postcardId) . "</strong></li>
+                    </ul>
                 </div>
             </div>
         </div>";
+        
+        error_log('Generated HTML content length: ' . strlen($htmlContent));
+        error_log('=== END MAILCHIMP DEBUG ===');
 
         $messageData = [
             'subject' => 'Your CC0 Postcard Receipt & Tracking 📮',
@@ -79,19 +127,6 @@ class MailchimpService {
                 'email' => $senderData['email'],
                 'name' => $senderData['name'] ?? ''
             ]],
-            'global_merge_vars' => [
-                ['name' => 'SENDER_NAME', 'content' => $senderData['name'] ?? ''],
-                ['name' => 'POSTCARD_IMAGE', 'content' => $postcardData['front_image'] ?? ''],
-                ['name' => 'PDF_URL', 'content' => $lobData['url'] ?? ''],
-                ['name' => 'TRACKING_URL', 'content' => $lobData['tracking_url'] ?? ''],
-                ['name' => 'DELIVERY_DATE', 'content' => $deliveryEstimate],
-                ['name' => 'COST_DISPLAY', 'content' => $costDisplay],
-                ['name' => 'POSTCARD_ID', 'content' => $lobData['id'] ?? 'N/A'],
-                ['name' => 'PAYMENT_ID', 'content' => $lobData['payment_intent_id'] ?? 'N/A'],
-                ['name' => 'ARTWORK_TITLE', 'content' => $postcardData['artworkTitle'] ?? ''],
-                ['name' => 'ARTWORK_ARTIST', 'content' => $postcardData['artworkArtist'] ?? ''],
-                ['name' => 'ARTWORK_MUSEUM', 'content' => $postcardData['artworkMuseum'] ?? '']
-            ],
             'html' => $htmlContent,
         ];
         
