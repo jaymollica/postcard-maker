@@ -79,10 +79,8 @@ function App() {
     return (
       <div className="App">
         <div className="head">
-          <h1>CC0 Postcard Maker</h1>
-          <div className="description">The below image can be sent as a physical postcard to an address of your choice by filling out the form
-  on this page. Each postcard is 4 inches by 6 inches (10x15cm) in size. Please be aware some clipping may
-  occur due to the nature of printing the image on paper.</div>
+          <h1>Postcard Sender</h1>
+          <div className="description">The below image can be sent as a physical postcard to an address of your choice by filling out the form on this page. Each postcard is 4 inches by 6 inches (10x15cm) in size. Please be aware some clipping may occur due to the nature of printing the image on paper.</div>
         </div>
         <input type="hidden" name="nonce" value={nonce} />
         <div style={{textAlign: 'center'}} className="imagecontainer">
