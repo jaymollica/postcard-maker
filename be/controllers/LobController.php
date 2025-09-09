@@ -115,6 +115,13 @@ class LobController
                         ));
 
                         $result = json_decode($response->getBody(), true);
+
+                        // Debug: Log the full Lob response to see what fields are available
+                        error_log('=== LOB API RESPONSE ===');
+                        error_log('Full Lob result: ' . json_encode($result));
+                        error_log('Tracking URL field: ' . ($result['tracking_url'] ?? 'NOT FOUND'));
+                        error_log('URL field: ' . ($result['url'] ?? 'NOT FOUND'));
+                        error_log('=== END LOB RESPONSE ===');
     
                         try {
                             require_once __DIR__ . '/../services/MailchimpService.php';
