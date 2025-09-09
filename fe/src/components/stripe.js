@@ -182,9 +182,7 @@ const CheckoutForm = (props) => {
     setPromoInput('');
     setPromoCode({});
     setCost(defaultCost);
-    setMessageWithType('');
-    // Reset payment intent to original cost
-    // You may want to call your backend to reset the payment intent here
+    // Reset payment intent to original cost if needed
   };
 
   const handleSubmit = async (event) => {

@@ -8,38 +8,24 @@ import { ButtonLabelVerify, ButtonLabelVerifying, ButtonLabelVerified } from './
 export default function Form(props){
 
 	const [address, setAddress] = useState({})
-	const [messages, setMessages] = useState('')
-	const [messageType, setMessageType] = useState('') // 'error', 'success', or ''
 	const [verifying, setVerifying] = useState(false)	
 	const {fullName, setFullName, setBillingDetails, postcardGenerated, setAddressVerified, addressVerified} = props;
 
-
 	const handleFieldChange = (payload) => {
-		// Clear messages when user starts typing
-		if (messages && messageType === 'error') {
-			setMessages('');
-			setMessageType('');
-		}
 		setAddress(payload.address)
 	}
 
 	const handleSelectAddress = (selection) => {
 		setAddress(selection.value)
-		// Clear any existing messages when address is selected
-		setMessages('');
-		setMessageType('');
 	}
 
 	const submitHandler = () => {
 		setVerifying(true);
-		setMessages('');
-		setMessageType('');
 		
 		console.log('address', address)
 		if( fullName.length === 0 ){
-			setMessages('Please enter your full name');
-			setMessageType('error');
 			setVerifying(false);
+			// No popup message - user will see the button return to normal state
 		}
 		else{
 			verify(lob_publishable_api_key_live, address).then((verificationResult) => {
@@ -47,8 +33,6 @@ export default function Form(props){
 				console.log('Verification Results', verificationResult)
 				if( verificationResult.valid_address && verificationResult.deliverability !== 'undeliverable' ){
 					setAddressVerified(true);
-					setMessages('Address verified successfully');
-					setMessageType('success');
 					setBillingDetails({
 						line1: verificationResult.primary_line,
 						line2: verificationResult.secondary_line,
@@ -59,15 +43,14 @@ export default function Form(props){
 					});
 				}
 				else{
-					setMessages('Address cannot be verified or is undeliverable. Please check and try again.');
-					setMessageType('error');
+					// Address verification failed - button will return to normal state
+					// User can try again without any popup message
 				}
 
 			}).catch( (err) => {
 				setVerifying(false);
 				console.log(err, err.message)
-				setMessages(err.message || 'Address verification failed. Please try again.');
-				setMessageType('error');
+				// Error occurred - button will return to normal state
 			} )
 		}
 	}
@@ -77,23 +60,6 @@ export default function Form(props){
 			<div className={`addressform ${addressVerified ? 'verified' : (verifying ? 'verifying' : '')}` }>
 				<h2>Delivery Address</h2>
 				<div className="description">Enter the address where you'd like your postcard delivered. We'll verify it to ensure successful delivery.</div>
-				
-				{/* Status Messages */}
-				{messages && (
-					<div className={`status-indicator ${messageType}`}>
-						{messageType === 'success' && (
-							<svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-								<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-							</svg>
-						)}
-						{messageType === 'error' && (
-							<svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-								<path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-							</svg>
-						)}
-						{messages}
-					</div>
-				)}
 				
 				<AddressForm
 					apiKey={lob_publishable_api_key_live}
@@ -120,14 +86,7 @@ export default function Form(props){
 
 							}}
 							id='full_name'
-							onChange={ e => {
-								setFullName(e.target.value)
-								// Clear name-related errors when typing
-								if (messages.includes('name')) {
-									setMessages('');
-									setMessageType('');
-								}
-							} }
+							onChange={ e => setFullName(e.target.value) }
 							value={fullName}
 							placeholder="Enter your full name"
 						/>
