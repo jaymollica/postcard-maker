@@ -23,14 +23,15 @@ class StripeController
       $stripe = new \Stripe\StripeClient($_ENV['STRIPE_API_KEY']);
 
       try {
-        global $default_cost;
+        // Get domain-specific cost
+        $default_cost = get_cost_for_domain($data->artistUrl ?? get_origin());
+        
         $promos = $stripe->promotionCodes->all(array(
           'active' => true,
           'code' => $data->promo
         ));
 
         if( count($promos->data) > 0 ){
-          
           
           // always return the first promo
           $promo = $promos->data[0];
@@ -67,9 +68,8 @@ class StripeController
         http_response_code($ex->getCode());
         return ['result' => 'error', 'message' => $ex->getMessage()];
       }
-
-
     }
+
     /**
      * Returns a JSON string object to the browser when hitting the root of the domain
      *
@@ -82,10 +82,9 @@ class StripeController
         return ['result' => 'error', 'message' => 'Bad nonce'];
       }
       
-
-      
       try {
-          global $default_cost;
+          // Get domain-specific cost instead of using global
+          $default_cost = get_cost_for_domain($data->artistUrl ?? get_origin());
           $new_cost = $default_cost;
         
           $stripe = new \Stripe\StripeClient($_ENV['STRIPE_API_KEY']);
@@ -110,7 +109,6 @@ class StripeController
                   $new_cost = 0;
               }
             }
-
           }
 
           if( $new_cost !== 0 ){
@@ -132,6 +130,5 @@ class StripeController
           //throw $th;
           return ['result' => 'error', 'message' => $th->getMessage()];
         }
-        
     }
 }

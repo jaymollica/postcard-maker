@@ -1,6 +1,7 @@
 <?php
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+
 class LobController
 {
     /**
@@ -29,7 +30,8 @@ class LobController
             try {
                 $payment_intent = $stripe->paymentIntents->retrieve($payment_intent_id);
                 
-                global $default_cost;
+                // Get domain-specific cost
+                $default_cost = get_cost_for_domain($data->artistUrl);
                 $actual_cost = $default_cost; // Default cost
                 
                 if( isset($data->promo->active) && $data->promo->active ){
@@ -144,15 +146,17 @@ class LobController
                                 'last_name' => explode(' ', $data->to->name ?? '')[1] ?? ''
                             ];
 
-                            // Add the actual cost and payment intent ID to the Lob result before passing to email
+                            // Add the actual cost, payment intent ID, and original cost to the Lob result
                             $result['cost'] = $actual_cost;
                             $result['payment_intent_id'] = $payment_intent_id;
+                            $result['original_cost'] = $default_cost; // Pass domain-specific original cost
 
                             error_log('=== EMAIL DATA DEBUG ===');
                             error_log('$data->to: ' . json_encode($data->to ?? 'MISSING'));
                             error_log('$data->merge_variables: ' . json_encode($data->merge_variables ?? 'MISSING'));
                             error_log('$result from Lob: ' . json_encode($result));
                             error_log('$actual_cost: ' . $actual_cost);
+                            error_log('$default_cost (domain-specific): ' . $default_cost);
                             
                             $emailResult = $mailchimpService->sendPostcardReceipt(
                                 $postcardData,
@@ -175,6 +179,7 @@ class LobController
                         $mp->track('Purchase', array(
                             'project' => $domain_vars->url,
                             'cost' => $actual_cost, // Use actual cost for analytics too
+                            'original_cost' => $default_cost, // Track original domain cost for analytics
                             'promo' => $data->promo,
                         ));
                         

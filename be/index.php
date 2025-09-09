@@ -50,8 +50,23 @@ function verify_nonce($nonce, $action, $lifetime = 86400) {
 /**
  * the default cost of sending a 4x6 postcard with Lob
  */
-global $default_cost;
-$default_cost = 80;
+// global $default_cost;
+// $default_cost = 80;
+
+function get_cost_for_domain($domain_url) {
+    global $domain_template_map;
+    
+    $domain_config = null;
+    foreach ($domain_template_map as $config) {
+        if ($config->url === $domain_url) {
+            $domain_config = $config;
+            break;
+        }
+    }
+    
+    // Return domain-specific cost or fallback to 80
+    return $domain_config->cost ?? 80;
+}
 
 // api controllers/setup
 require './controllers/StripeController.php';

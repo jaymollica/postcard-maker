@@ -47,7 +47,7 @@ class MailchimpService {
         $deliveryEstimate = $this->calculateDeliveryEstimate($lobData['date_created']);
         
         // Calculate actual cost paid (after promo codes)
-        $originalCost = 80; // default cost in cents
+        $originalCost = $lobData['original_cost'] ?? 80; // Use domain-specific cost with fallbackRetry
         $actualCost = $lobData['cost'] ?? $originalCost;
         $promoApplied = $actualCost < $originalCost;
         
