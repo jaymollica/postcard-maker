@@ -84,15 +84,14 @@ class MailchimpService {
             error_log('Using generic tracking guide URL: ' . $trackingUrl);
         }
         
-        error_log('Final tracking URL: ' . $trackingUrl);
-        error_log('PDF URL: ' . ($lobData['url'] ?? 'MISSING'));
+
 
         // Build inline HTML with both IDs clearly displayed
         $htmlContent = "
         <div style='max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;'>
             <div style='background: #0078d4; color: white; padding: 40px 20px; text-align: center;'>
-                <h1>Your Postcard is on its way!</h1>
-                <p>Thanks for using CC0 Postcards</p>
+                <h1>Your postcard is on its way!</h1>
+                <p>Thanks for using Sweet Post</p>
             </div>
             <div style='padding: 20px;'>
                 <div style='background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 16px; margin-bottom: 20px;'>
@@ -115,14 +114,11 @@ class MailchimpService {
                 </div>
             </div>
         </div>";
-        
-        error_log('Generated HTML content length: ' . strlen($htmlContent));
-        error_log('=== END MAILCHIMP DEBUG ===');
 
         $messageData = [
-            'subject' => 'Your CC0 Postcard Receipt & Tracking 📮',
+            'subject' => 'Your Postcard Receipt & Tracking 📮',
             'from_email' => 'do-not-reply@sweetpost.art',
-            'from_name' => 'CC0 Postcards',
+            'from_name' => 'Sweet Post',
             'to' => [[
                 'email' => $senderData['email'],
                 'name' => $senderData['name'] ?? ''
