@@ -1,5 +1,5 @@
 import './App.css';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 // import Geo from './components/geo.js';
 import Form from './components/form.js';
 import Stripe from './components/stripe.js';
@@ -14,7 +14,7 @@ function App() {
   const [paymentIntent, setPaymentIntent] = useState("");
   const [nonce, setNonce] = useState("");
 
-  const urlSearchParams = new URLSearchParams(window.location.search);
+  const urlSearchParams = useMemo(() => new URLSearchParams(window.location.search), []);
   const isSuccessPage = urlSearchParams.get('success') === 'true';
   const isCancelPage = urlSearchParams.get('cancel') === 'true';
   const isMainPage = !isSuccessPage && !isCancelPage;
