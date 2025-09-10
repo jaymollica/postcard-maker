@@ -7,7 +7,8 @@ import Stripe from './components/stripe.js';
 function App() {
 
   const [billingDetails, setBillingDetails] = useState({});
-  const [fullName, setFullName] = useState('');
+  const [recipientName, setRecipientName] = useState(''); // Name of person receiving postcard
+  const [payerName, setPayerName] = useState(''); // Name of person paying
   const [email, setEmail] = useState('');
   const [addressVerified, setAddressVerified] = useState(false)
   const [paymentIntent, setPaymentIntent] = useState("");
@@ -17,6 +18,7 @@ function App() {
   const isSuccessPage = urlSearchParams.get('success') === 'true';
   const isCancelPage = urlSearchParams.get('cancel') === 'true';
   const isMainPage = !isSuccessPage && !isCancelPage;
+  
   useEffect(() => {
     const fetchSecret = () => {
       if( nonce.length === 0 ){
@@ -34,6 +36,9 @@ function App() {
         .then(res => res.json())
         .then(data => {
           setNonce(data.nonce);
+          
+          const artistUrl = urlSearchParams.get('artistUrl');
+          
           fetch(process.env.REACT_APP_BACKEND_URL + "/stripe", {
             method: "POST",
             headers: {
@@ -42,7 +47,8 @@ function App() {
             },
             body: JSON.stringify({
               items: [{ id: "postcard-4x6" }],
-              nonce: data.nonce
+              nonce: data.nonce,
+              artistUrl: artistUrl  // Add artistUrl for domain-specific pricing
             }),
             mode: 'cors', // no-cors, *cors, same-origin
             credentials: 'same-origin', // include, *same-origin, omit
@@ -63,15 +69,13 @@ function App() {
           console.error(error);
         });
       }
-  
-  
     };
 
     if( isMainPage ){
       fetchSecret();
     }
   
-  }, [nonce, isMainPage]);
+  }, [nonce, isMainPage, urlSearchParams]);
   
   const imgUrl = urlSearchParams.get('imgUrl');
   
@@ -101,8 +105,8 @@ function App() {
         <Form
           postcardGenerated={true}
           setBillingDetails={setBillingDetails}
-          fullName={fullName}
-          setFullName={setFullName}
+          recipientName={recipientName}
+          setRecipientName={setRecipientName}
           addressVerified={addressVerified}
           setAddressVerified={setAddressVerified}
           />
@@ -112,6 +116,8 @@ function App() {
             addressVerified={addressVerified} 
             email={email}
             setEmail={setEmail}
+            payerName={payerName}
+            setPayerName={setPayerName}
             elementsOptions={{paymentIntent: paymentIntent, setPaymentIntent: setPaymentIntent}}  
           /> }
       </div>

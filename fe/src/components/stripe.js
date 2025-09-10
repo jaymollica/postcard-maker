@@ -233,6 +233,12 @@ const CheckoutForm = (props) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    // Validate payer name
+    if( props.payerName.length === 0 ){
+      setMessageWithType('Please enter your name for the payment.', 'error');
+      return;
+    }
+
     // Validate email before processing payment
     if( props.email.length === 0 ){
       setMessageWithType('Please enter your email address to receive the receipt.', 'error');
@@ -268,18 +274,18 @@ const CheckoutForm = (props) => {
           payment_method: {
             card: elements.getElement(CardElement),
             billing_details: {
-              name: props.billingDetails.name,
-              email: props.email, // Use email from props
+              name: props.payerName, // Use payer name for Stripe billing
+              email: props.email,
               address: {
                 city: props.billingDetails.city,
                 state: props.billingDetails.state,
-              line1: props.billingDetails.line1,
-              line2: props.billingDetails.line2,
-              postal_code: props.billingDetails.postal_code,
-            }
+                line1: props.billingDetails.line1,
+                line2: props.billingDetails.line2,
+                postal_code: props.billingDetails.postal_code,
+              }
+            },
           },
-        },
-        return_url: process.env.REACT_APP_FRONTEND_URL
+          return_url: process.env.REACT_APP_FRONTEND_URL
         
       });
       // This point will only be reached if there is an immediate error when
@@ -339,6 +345,38 @@ const CheckoutForm = (props) => {
       )}
       
       <form className="stripeform" onSubmit={handleSubmit}>
+        {/* Payer name field */}
+        <div style={{display: 'flex', flexDirection: 'row', marginBottom: '1em'}}>
+          <label style={{alignSelf: 'center', minWidth: '5em', marginRight: '1em', textAlign: 'end'}} htmlFor='payerName'>
+            Your name<br /><small>(for payment)</small>
+          </label>
+          <input
+            style={{ 
+              backgroundColor: 'rgb(255, 255, 255)',
+              border: '1px solid rgb(204, 204, 204)',
+              borderRadius: '4px',
+              boxSizing: 'border-box',
+              minHeight: '38px',
+              outline: '0px',
+              padding: '0px 8px',
+              width: '100%',
+              marginBottom: 'auto',
+
+            }}
+            type="text"
+            id='payerName'
+            onChange={ e => {
+              props.setPayerName(e.target.value)
+              // Clear name-related errors when typing
+              if (message && (message.includes('name') || message.includes('Name'))) {
+                setMessageWithType('');
+              }
+            } }
+            value={props.payerName}
+            placeholder="Enter your full name"
+          />
+        </div>
+
         {/* Email field */}
         <div style={{display: 'flex', flexDirection: 'row', marginBottom: '1em'}}>
           <label style={{alignSelf: 'center', minWidth: '5em', marginRight: '1em', textAlign: 'end'}} htmlFor='email'>
@@ -482,6 +520,8 @@ export default function Stripe(props) {
           paymentIntent={ props.elementsOptions.paymentIntent }
           email={props.email}
           setEmail={props.setEmail}
+          payerName={props.payerName}
+          setPayerName={props.setPayerName}
           setPaymentIntent={props.elementsOptions.setPaymentIntent}
         />
       </Elements>
