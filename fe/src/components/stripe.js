@@ -178,24 +178,54 @@ const CheckoutForm = (props) => {
 
       setIsLoading(true);
 
-      // Confirm the payment with Stripe
-      const {error: confirmError, paymentIntent} = await stripe.confirmCardPayment(
-        props.paymentIntent.client_secret,
-        {
-          payment_method: e.paymentMethod.id,
-        },
-        {handleActions: false}
-      );
+      try {
+        // Confirm the payment with Stripe
+        const {error: confirmError, paymentIntent} = await stripe.confirmCardPayment(
+          props.paymentIntent.client_secret,
+          {
+            payment_method: e.paymentMethod.id,
+          },
+          {handleActions: false}
+        );
 
-      if (confirmError) {
+        if (confirmError) {
+          console.error('Apple Pay confirmation error:', confirmError);
+          e.complete('fail');
+          setMessageWithType(confirmError.message, 'error');
+          setIsLoading(false);
+        } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+          e.complete('success');
+          setPaymentSuccessful(true);
+          setMessageWithType('Payment successful! You\'ll receive an email receipt shortly.', 'success');
+          
+          // Send postcard after successful payment
+          await sendPostcard(paymentIntent);
+          setIsLoading(false);
+        } else if (paymentIntent && paymentIntent.status === 'requires_action') {
+          // Handle 3D Secure or other actions
+          const {error: actionError} = await stripe.handleCardAction(props.paymentIntent.client_secret);
+          if (actionError) {
+            console.error('Apple Pay action error:', actionError);
+            e.complete('fail');
+            setMessageWithType(actionError.message, 'error');
+            setIsLoading(false);
+          } else {
+            e.complete('success');
+            setPaymentSuccessful(true);
+            setMessageWithType('Payment successful! You\'ll receive an email receipt shortly.', 'success');
+            await sendPostcard(paymentIntent);
+            setIsLoading(false);
+          }
+        } else {
+          console.error('Unexpected payment status:', paymentIntent?.status);
+          e.complete('fail');
+          setMessageWithType('Payment could not be completed. Please try again.', 'error');
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Apple Pay processing error:', error);
         e.complete('fail');
-        setMessageWithType(confirmError.message, 'error');
-        setIsLoading(false);
-      } else {
-        e.complete('success');
-        setPaymentSuccessful(true);
-        setMessageWithType('Payment successful! You\'ll receive an email receipt shortly.', 'success');
-        sendPostcard(paymentIntent);
+        setMessageWithType('An error occurred processing your payment. Please try again.', 'error');
         setIsLoading(false);
       }
     });
