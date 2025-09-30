@@ -6,8 +6,7 @@ import {
   Elements,
   useStripe,
   useElements,
-  PaymentRequestButtonElement,
-  usePaymentRequest
+  PaymentRequestButtonElement
 } from '@stripe/react-stripe-js';
 
 import { ButtonLabelVerify, ButtonLabelVerifying, ButtonLabelVerified } from './ButtonLabels';
