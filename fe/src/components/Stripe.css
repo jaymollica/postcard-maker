@@ -86,7 +86,7 @@
 }
 
 /* Payment button styling */
-.stripecontainer .stripeform button{
+.stripecontainer .stripeform button[type="submit"]{
 	font-weight: 300;
 	border: 1px solid #000;
 	outline: none;
@@ -105,14 +105,14 @@
 	position: relative;
 }
 
-.stripecontainer .stripeform button:hover:not(:disabled){
+.stripecontainer .stripeform button[type="submit"]:hover:not(:disabled){
 	opacity: 0.8;
 	background: #000;
 	transform: none;
 	box-shadow: none;
 }
 
-.stripecontainer .stripeform button:disabled{
+.stripecontainer .stripeform button[type="submit"]:disabled{
 	background: #ccc;
 	border-color: #ccc;
 	cursor: not-allowed;
@@ -121,48 +121,48 @@
 	box-shadow: none;
 }
 
-.stripecontainer .stripeform button.paid{
+.stripecontainer .stripeform button[type="submit"].paid{
 	background: #000;
 	border-color: #000;
 	cursor: default;
 }
 
-.stripecontainer .stripeform button.paid:hover{
+.stripecontainer .stripeform button[type="submit"].paid:hover{
 	background: #000;
 	opacity: 1;
 	transform: none;
 	box-shadow: none;
 }
 
-.stripecontainer .stripeform button.loading{
+.stripecontainer .stripeform button[type="submit"].loading{
 	background: #000;
 	border-color: #000;
 	cursor: not-allowed;
 }
 
-.stripecontainer .stripeform button span{
+.stripecontainer .stripeform button[type="submit"] span{
 	margin-right: 8px;
 	display: inline-block;
 	vertical-align: middle;
 }
 
-.stripecontainer .stripeform button svg{
+.stripecontainer .stripeform button[type="submit"] svg{
 	display: inline-block;
 	vertical-align: middle;
 	width: 18px;
 	height: 18px;
 }
 
-.stripecontainer .stripeform button .tailspin{
+.stripecontainer .stripeform button[type="submit"] .tailspin{
 	width: 18px;
 	height: 18px;
 }
 
-.stripecontainer .stripeform button .tailspin path{
+.stripecontainer .stripeform button[type="submit"] .tailspin path{
 	stroke: #fff;
 }
 
-.stripecontainer .stripeform button .checkmark{
+.stripecontainer .stripeform button[type="submit"] .checkmark{
 	width: 18px;
 	height: 18px;
 	margin: 0;
