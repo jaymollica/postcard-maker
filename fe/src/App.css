@@ -43,7 +43,6 @@ body{
 .head{
   max-width: 680px;
   margin: 0 auto 40px auto;
-  padding: 0 20px;
   box-sizing: border-box;
 }
 .imagecontainer{
@@ -59,7 +58,6 @@ body{
   padding-bottom: calc(calc(4 / 6) * 100%);
   margin: 0 auto;
   position: relative;
-  border: 1px solid #ddd;
 }
 .imagecontainer-wrapper-image{
   width: 100%;
