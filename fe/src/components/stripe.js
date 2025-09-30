@@ -79,11 +79,17 @@ const CheckoutForm = (props) => {
     // Use emailOverride if provided (from Apple Pay), otherwise use form email
     const emailToSend = emailOverride || props.email;
     
+    console.log('sendPostcard called with email:', emailToSend);
+    
+    // Ensure email is in the billing details
+    const billingDetailsWithEmail = {
+      ...props.billingDetails,
+      email: emailToSend // Explicitly set email in billing details
+    };
+    
     let body = {
-      to: {
-        ...props.billingDetails,
-        email: emailToSend // Use the correct email for receipt
-      },
+      to: billingDetailsWithEmail, // Use the version with email guaranteed
+      email: emailToSend, // Also include at top level for backend compatibility
       paymentIntent : paymentIntent === null ? props.paymentIntent : paymentIntent,
       nonce : document.querySelector('input[name="nonce"]').value,
       promo : Object.keys(promoCode).length > 0 ? promoCode : null,
@@ -114,6 +120,8 @@ const CheckoutForm = (props) => {
 
     body.cost = cost;
 
+    console.log('Sending to backend:', JSON.stringify(body, null, 2));
+
     try {
       const lobResponse = await fetch(process.env.REACT_APP_BACKEND_URL + '/lob', {
         method: "POST",
@@ -130,8 +138,10 @@ const CheckoutForm = (props) => {
       
       const lobResponseDecoded = await lobResponse.json();
       
+      console.log('Backend response:', lobResponseDecoded);
+      
       if( lobResponseDecoded.url ){
-        setMessageWithType(`Payment successful! You'll receive an email receipt shortly. <a href="${lobResponseDecoded.url}" target="_blank" rel="noopener noreferrer">Preview your postcard here</a>. Please allow 10-14 business days for delivery.`, 'success');
+        setMessageWithType(`Payment successful! You'll receive an email receipt shortly at ${emailToSend}. <a href="${lobResponseDecoded.url}" target="_blank" rel="noopener noreferrer">Preview your postcard here</a>. Please allow 10-14 business days for delivery.`, 'success');
       }
     
     } catch (error) {
@@ -222,8 +232,8 @@ const CheckoutForm = (props) => {
           setPaymentSuccessful(true);
           setMessageWithType('Payment successful! You\'ll receive an email receipt shortly.', 'success');
           
-          // Send postcard after successful payment
-          await sendPostcard(confirmedPaymentIntent);
+          // Send postcard after successful payment, passing the Apple Pay email
+          await sendPostcard(confirmedPaymentIntent, emailToUse);
           setIsLoading(false);
         } else if (confirmedPaymentIntent && confirmedPaymentIntent.status === 'requires_action') {
           console.log('Payment requires additional action');
@@ -238,7 +248,7 @@ const CheckoutForm = (props) => {
             ev.complete('success');
             setPaymentSuccessful(true);
             setMessageWithType('Payment successful! You\'ll receive an email receipt shortly.', 'success');
-            await sendPostcard(confirmedPaymentIntent);
+            await sendPostcard(confirmedPaymentIntent, emailToUse);
             setIsLoading(false);
           }
         } else {
