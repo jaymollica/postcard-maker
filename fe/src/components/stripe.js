@@ -69,82 +69,6 @@ const CheckoutForm = (props) => {
     fetchDomainCost();
   }, []);
 
-  // Apple Pay / Payment Request Button setup
-  const paymentRequest = usePaymentRequest({
-    country: 'US',
-    currency: 'usd',
-    total: {
-      label: 'Postcard',
-      amount: cost,
-    },
-    requestPayerName: true,
-    requestPayerEmail: true,
-  });
-
-  const [canMakePayment, setCanMakePayment] = useState(false);
-
-  useEffect(() => {
-    if (!paymentRequest) {
-      return;
-    }
-
-    paymentRequest.canMakePayment().then((result) => {
-      if (result) {
-        setCanMakePayment(true);
-      }
-    });
-
-    paymentRequest.on('paymentmethod', async (e) => {
-      // Validate required fields
-      if (!props.billingDetails.line1 || props.billingDetails.line1.length === 0) {
-        e.complete('fail');
-        setMessageWithType('Please verify the delivery address first.', 'error');
-        return;
-      }
-
-      if (props.email.length === 0) {
-        e.complete('fail');
-        setMessageWithType('Please enter your email address first.', 'error');
-        return;
-      }
-
-      setIsLoading(true);
-
-      // Confirm the payment with Stripe
-      const {error: confirmError, paymentIntent} = await stripe.confirmCardPayment(
-        props.paymentIntent.client_secret,
-        {
-          payment_method: e.paymentMethod.id,
-        },
-        {handleActions: false}
-      );
-
-      if (confirmError) {
-        e.complete('fail');
-        setMessageWithType(confirmError.message, 'error');
-        setIsLoading(false);
-      } else {
-        e.complete('success');
-        setPaymentSuccessful(true);
-        setMessageWithType('Payment successful! You\'ll receive an email receipt shortly.', 'success');
-        sendPostcard(paymentIntent);
-        setIsLoading(false);
-      }
-    });
-  }, [paymentRequest, stripe, cost, props.billingDetails, props.email, props.paymentIntent.client_secret, sendPostcard]);
-
-  // Update the payment request when cost changes
-  useEffect(() => {
-    if (paymentRequest) {
-      paymentRequest.update({
-        total: {
-          label: 'Postcard',
-          amount: cost,
-        },
-      });
-    }
-  }, [cost, paymentRequest]);
-
   const setMessageWithType = (msg, type = '') => {
     setMessage(msg);
     setMessageType(type);
@@ -211,6 +135,82 @@ const CheckoutForm = (props) => {
       setMessageWithType('An error occurred while processing your order. Please try again.', 'error');
     }
   }, [cost, promoCode, props.billingDetails, props.email, props.paymentIntent]);
+
+  // Apple Pay / Payment Request Button setup
+  const paymentRequest = usePaymentRequest({
+    country: 'US',
+    currency: 'usd',
+    total: {
+      label: 'Postcard',
+      amount: cost,
+    },
+    requestPayerName: true,
+    requestPayerEmail: true,
+  });
+
+  const [canMakePayment, setCanMakePayment] = useState(false);
+
+  useEffect(() => {
+    if (!paymentRequest) {
+      return;
+    }
+
+    paymentRequest.canMakePayment().then((result) => {
+      if (result) {
+        setCanMakePayment(true);
+      }
+    });
+
+    paymentRequest.on('paymentmethod', async (e) => {
+      // Validate required fields
+      if (!props.billingDetails.line1 || props.billingDetails.line1.length === 0) {
+        e.complete('fail');
+        setMessageWithType('Please verify the delivery address first.', 'error');
+        return;
+      }
+
+      if (props.email.length === 0) {
+        e.complete('fail');
+        setMessageWithType('Please enter your email address first.', 'error');
+        return;
+      }
+
+      setIsLoading(true);
+
+      // Confirm the payment with Stripe
+      const {error: confirmError, paymentIntent} = await stripe.confirmCardPayment(
+        props.paymentIntent.client_secret,
+        {
+          payment_method: e.paymentMethod.id,
+        },
+        {handleActions: false}
+      );
+
+      if (confirmError) {
+        e.complete('fail');
+        setMessageWithType(confirmError.message, 'error');
+        setIsLoading(false);
+      } else {
+        e.complete('success');
+        setPaymentSuccessful(true);
+        setMessageWithType('Payment successful! You\'ll receive an email receipt shortly.', 'success');
+        sendPostcard(paymentIntent);
+        setIsLoading(false);
+      }
+    });
+  }, [paymentRequest, stripe, props.billingDetails, props.email, props.paymentIntent.client_secret, sendPostcard]);
+
+  // Update the payment request when cost changes
+  useEffect(() => {
+    if (paymentRequest) {
+      paymentRequest.update({
+        total: {
+          label: 'Postcard',
+          amount: cost,
+        },
+      });
+    }
+  }, [cost, paymentRequest]);
 
   const validatePromoCode = async () => {
     if (promoInput.trim().length === 0) {
