@@ -209,6 +209,13 @@
 .stripecontainer .apple-pay-container {
 	margin-bottom: 24px;
 	width: 100%;
+	clear: both;
+	display: block;
+}
+
+.stripecontainer .apple-pay-container > div {
+	width: 100% !important;
+	max-width: 100% !important;
 }
 
 .stripecontainer .apple-pay-divider {
@@ -217,6 +224,8 @@
 	color: #666;
 	font-size: 14px;
 	font-weight: 300;
+	clear: both;
+	display: block;
 }
 
 /* Promo code section */
@@ -224,7 +233,8 @@
 	display: flex;
 	gap: 8px;
 	margin-bottom: 24px;
-	align-items: flex-end;
+	align-items: stretch;
+	width: 100%;
 }
 
 .stripecontainer .promo-section input {
@@ -241,6 +251,15 @@
 	color: #000;
 }
 
+.stripecontainer .promo-section input:focus {
+	border-color: #000;
+	box-shadow: none;
+}
+
+.stripecontainer .promo-section input::placeholder {
+	color: #999;
+}
+
 .stripecontainer .promo-section button {
 	background: #000;
 	border: 1px solid #000;
@@ -253,6 +272,7 @@
 	font-weight: 300;
 	transition: opacity 0.2s ease;
 	white-space: nowrap;
+	flex-shrink: 0;
 }
 
 .stripecontainer .promo-section button:hover:not(:disabled) {
@@ -278,6 +298,7 @@
 	margin-bottom: 24px;
 	align-items: flex-start;
 	gap: 16px;
+	width: 100%;
 }
 
 .stripecontainer .form-row label {
@@ -287,6 +308,7 @@
 	font-weight: 300;
 	color: #000;
 	font-size: 14px;
+	flex-shrink: 0;
 }
 
 .stripecontainer .form-row label small {
@@ -315,6 +337,10 @@
 	box-shadow: none;
 }
 
+.stripecontainer .form-row input::placeholder {
+	color: #999;
+}
+
 /* Responsive improvements */
 @media (max-width: 640px) {
 	.stripecontainer {
@@ -334,19 +360,31 @@
 	.stripecontainer .form-row {
 		flex-direction: column;
 		gap: 8px;
+		align-items: stretch;
 	}
 
 	.stripecontainer .form-row label {
 		text-align: left;
 		min-width: 0;
+		align-self: flex-start;
 	}
 
 	.stripecontainer .promo-section {
 		flex-direction: column;
 		gap: 12px;
+		align-items: stretch;
+	}
+
+	.stripecontainer .promo-section input {
+		width: 100%;
 	}
 
 	.stripecontainer .promo-section button {
+		width: 100%;
+	}
+
+	.stripecontainer .apple-pay-container {
+		margin-bottom: 24px;
 		width: 100%;
 	}
 }
