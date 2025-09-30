@@ -24,6 +24,8 @@ const CheckoutForm = (props) => {
   const [ promoValidating, setPromoValidating ] = useState(false); // New state for validation loading
   const [ cost, setCost ] = useState(0); // Start with 0, will be set from backend
   const [ defaultCost, setDefaultCost ] = useState(0); // Domain-specific default cost
+  const [paymentRequest, setPaymentRequest] = useState(null);
+  const [canMakePayment, setCanMakePayment] = useState(false);
 
   // Get domain-specific cost on component mount
   useEffect(() => {
@@ -136,31 +138,31 @@ const CheckoutForm = (props) => {
   }, [cost, promoCode, props.billingDetails, props.email, props.paymentIntent]);
 
   // Apple Pay / Payment Request Button setup
-  const paymentRequest = usePaymentRequest({
-    country: 'US',
-    currency: 'usd',
-    total: {
-      label: 'Postcard',
-      amount: cost,
-    },
-    requestPayerName: true,
-    requestPayerEmail: true,
-  });
-
-  const [canMakePayment, setCanMakePayment] = useState(false);
-
   useEffect(() => {
-    if (!paymentRequest) {
+    if (!stripe) {
       return;
     }
 
-    paymentRequest.canMakePayment().then((result) => {
+    const pr = stripe.paymentRequest({
+      country: 'US',
+      currency: 'usd',
+      total: {
+        label: 'Postcard',
+        amount: cost,
+      },
+      requestPayerName: true,
+      requestPayerEmail: true,
+    });
+
+    // Check if Payment Request is available (Apple Pay, Google Pay, etc.)
+    pr.canMakePayment().then((result) => {
       if (result) {
+        setPaymentRequest(pr);
         setCanMakePayment(true);
       }
     });
 
-    paymentRequest.on('paymentmethod', async (e) => {
+    pr.on('paymentmethod', async (e) => {
       // Validate required fields
       if (!props.billingDetails.line1 || props.billingDetails.line1.length === 0) {
         e.complete('fail');
@@ -197,7 +199,7 @@ const CheckoutForm = (props) => {
         setIsLoading(false);
       }
     });
-  }, [paymentRequest, stripe, props.billingDetails, props.email, props.paymentIntent.client_secret, sendPostcard]);
+  }, [stripe, cost, props.billingDetails, props.email, props.paymentIntent.client_secret, sendPostcard]);
 
   // Update the payment request when cost changes
   useEffect(() => {
@@ -556,7 +558,7 @@ const CheckoutForm = (props) => {
         </div>
 
         {/* Apple Pay / Google Pay Button */}
-        {canMakePayment && cost >= 50 && (
+        {canMakePayment && paymentRequest && cost >= 50 && (
           <div style={{ marginBottom: '24px' }}>
             <PaymentRequestButtonElement 
               options={{
