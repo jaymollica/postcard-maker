@@ -131,7 +131,7 @@ const CheckoutForm = (props) => {
         setIsLoading(false);
       }
     });
-  }, [paymentRequest, stripe, cost, props.billingDetails, props.email]);
+  }, [paymentRequest, stripe, cost, props.billingDetails, props.email, props.paymentIntent.client_secret, sendPostcard]);
 
   // Update the payment request when cost changes
   useEffect(() => {
@@ -150,7 +150,7 @@ const CheckoutForm = (props) => {
     setMessageType(type);
   };
 
-  const sendPostcard = async (paymentIntent = null) => {
+  const sendPostcard = React.useCallback(async (paymentIntent = null) => {
     let body = {
       to: {
         ...props.billingDetails,
@@ -210,7 +210,7 @@ const CheckoutForm = (props) => {
       console.error('An error occurred:', error);
       setMessageWithType('An error occurred while processing your order. Please try again.', 'error');
     }
-  }
+  }, [cost, promoCode, props.billingDetails, props.email, props.paymentIntent]);
 
   const validatePromoCode = async () => {
     if (promoInput.trim().length === 0) {
