@@ -137,9 +137,9 @@ const CheckoutForm = (props) => {
     }
   }, [cost, promoCode, props.billingDetails, props.email, props.paymentIntent]);
 
-  // Apple Pay / Payment Request Button setup
+  // Apple Pay / Payment Request Button setup - create once
   useEffect(() => {
-    if (!stripe) {
+    if (!stripe || paymentRequest) {
       return;
     }
 
@@ -162,20 +162,25 @@ const CheckoutForm = (props) => {
       }
     });
 
-    pr.on('paymentmethod', async (e) => {
+    pr.on('paymentmethod', async (ev) => {
+      console.log('Apple Pay paymentmethod event triggered');
+      
       // Validate required fields
       if (!props.billingDetails.line1 || props.billingDetails.line1.length === 0) {
-        e.complete('fail');
+        console.error('Validation failed: no delivery address');
+        ev.complete('fail');
         setMessageWithType('Please verify the delivery address first.', 'error');
         return;
       }
 
       if (props.email.length === 0) {
-        e.complete('fail');
+        console.error('Validation failed: no email');
+        ev.complete('fail');
         setMessageWithType('Please enter your email address first.', 'error');
         return;
       }
 
+      console.log('Starting payment confirmation with client_secret:', props.paymentIntent.client_secret);
       setIsLoading(true);
 
       try {
@@ -183,18 +188,21 @@ const CheckoutForm = (props) => {
         const {error: confirmError, paymentIntent} = await stripe.confirmCardPayment(
           props.paymentIntent.client_secret,
           {
-            payment_method: e.paymentMethod.id,
+            payment_method: ev.paymentMethod.id,
           },
           {handleActions: false}
         );
 
+        console.log('Confirmation response:', { confirmError, paymentIntent });
+
         if (confirmError) {
           console.error('Apple Pay confirmation error:', confirmError);
-          e.complete('fail');
-          setMessageWithType(confirmError.message, 'error');
+          ev.complete('fail');
+          setMessageWithType(`Payment failed: ${confirmError.message}`, 'error');
           setIsLoading(false);
         } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-          e.complete('success');
+          console.log('Payment succeeded!');
+          ev.complete('success');
           setPaymentSuccessful(true);
           setMessageWithType('Payment successful! You\'ll receive an email receipt shortly.', 'success');
           
@@ -202,15 +210,16 @@ const CheckoutForm = (props) => {
           await sendPostcard(paymentIntent);
           setIsLoading(false);
         } else if (paymentIntent && paymentIntent.status === 'requires_action') {
+          console.log('Payment requires additional action');
           // Handle 3D Secure or other actions
           const {error: actionError} = await stripe.handleCardAction(props.paymentIntent.client_secret);
           if (actionError) {
             console.error('Apple Pay action error:', actionError);
-            e.complete('fail');
-            setMessageWithType(actionError.message, 'error');
+            ev.complete('fail');
+            setMessageWithType(`Payment failed: ${actionError.message}`, 'error');
             setIsLoading(false);
           } else {
-            e.complete('success');
+            ev.complete('success');
             setPaymentSuccessful(true);
             setMessageWithType('Payment successful! You\'ll receive an email receipt shortly.', 'success');
             await sendPostcard(paymentIntent);
@@ -218,18 +227,18 @@ const CheckoutForm = (props) => {
           }
         } else {
           console.error('Unexpected payment status:', paymentIntent?.status);
-          e.complete('fail');
-          setMessageWithType('Payment could not be completed. Please try again.', 'error');
+          ev.complete('fail');
+          setMessageWithType(`Payment failed with status: ${paymentIntent?.status || 'unknown'}`, 'error');
           setIsLoading(false);
         }
       } catch (error) {
         console.error('Apple Pay processing error:', error);
-        e.complete('fail');
-        setMessageWithType('An error occurred processing your payment. Please try again.', 'error');
+        ev.complete('fail');
+        setMessageWithType(`Payment error: ${error.message || 'Unknown error occurred'}`, 'error');
         setIsLoading(false);
       }
     });
-  }, [stripe, cost, props.billingDetails, props.email, props.paymentIntent.client_secret, sendPostcard]);
+  }, [stripe, paymentRequest, cost, props.billingDetails, props.email, props.paymentIntent.client_secret, sendPostcard]);
 
   // Update the payment request when cost changes
   useEffect(() => {
