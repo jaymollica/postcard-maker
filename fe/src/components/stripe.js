@@ -143,6 +143,9 @@ const CheckoutForm = (props) => {
       return;
     }
 
+    // Destructure props for the effect
+    const { billingDetails, email, setEmail, paymentIntent } = props;
+
     const pr = stripe.paymentRequest({
       country: 'US',
       currency: 'usd',
@@ -167,7 +170,7 @@ const CheckoutForm = (props) => {
       console.log('Payment method details:', ev.paymentMethod);
       
       // Validate required fields
-      if (!props.billingDetails.line1 || props.billingDetails.line1.length === 0) {
+      if (!billingDetails.line1 || billingDetails.line1.length === 0) {
         console.error('Validation failed: no delivery address');
         ev.complete('fail');
         setMessageWithType('Please verify the delivery address first.', 'error');
@@ -175,7 +178,7 @@ const CheckoutForm = (props) => {
       }
 
       // Use email from Apple Pay if user hasn't entered one
-      const emailToUse = props.email.length > 0 ? props.email : (ev.payerEmail || '');
+      const emailToUse = email.length > 0 ? email : (ev.payerEmail || '');
       
       if (emailToUse.length === 0) {
         console.error('Validation failed: no email from form or Apple Pay');
@@ -185,44 +188,44 @@ const CheckoutForm = (props) => {
       }
 
       // Update email state if we got it from Apple Pay
-      if (props.email.length === 0 && ev.payerEmail) {
-        props.setEmail(ev.payerEmail);
+      if (email.length === 0 && ev.payerEmail) {
+        setEmail(ev.payerEmail);
       }
 
-      console.log('Starting payment confirmation with client_secret:', props.paymentIntent.client_secret);
+      console.log('Starting payment confirmation with client_secret:', paymentIntent.client_secret);
       console.log('Using email:', emailToUse);
       setIsLoading(true);
 
       try {
         // Confirm the payment with Stripe
-        const {error: confirmError, paymentIntent} = await stripe.confirmCardPayment(
-          props.paymentIntent.client_secret,
+        const {error: confirmError, paymentIntent: confirmedPaymentIntent} = await stripe.confirmCardPayment(
+          paymentIntent.client_secret,
           {
             payment_method: ev.paymentMethod.id,
           },
           {handleActions: false}
         );
 
-        console.log('Confirmation response:', { confirmError, paymentIntent });
+        console.log('Confirmation response:', { confirmError, paymentIntent: confirmedPaymentIntent });
 
         if (confirmError) {
           console.error('Apple Pay confirmation error:', confirmError);
           ev.complete('fail');
           setMessageWithType(`Payment failed: ${confirmError.message}`, 'error');
           setIsLoading(false);
-        } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+        } else if (confirmedPaymentIntent && confirmedPaymentIntent.status === 'succeeded') {
           console.log('Payment succeeded!');
           ev.complete('success');
           setPaymentSuccessful(true);
           setMessageWithType('Payment successful! You\'ll receive an email receipt shortly.', 'success');
           
           // Send postcard after successful payment
-          await sendPostcard(paymentIntent);
+          await sendPostcard(confirmedPaymentIntent);
           setIsLoading(false);
-        } else if (paymentIntent && paymentIntent.status === 'requires_action') {
+        } else if (confirmedPaymentIntent && confirmedPaymentIntent.status === 'requires_action') {
           console.log('Payment requires additional action');
           // Handle 3D Secure or other actions
-          const {error: actionError} = await stripe.handleCardAction(props.paymentIntent.client_secret);
+          const {error: actionError} = await stripe.handleCardAction(paymentIntent.client_secret);
           if (actionError) {
             console.error('Apple Pay action error:', actionError);
             ev.complete('fail');
@@ -232,13 +235,13 @@ const CheckoutForm = (props) => {
             ev.complete('success');
             setPaymentSuccessful(true);
             setMessageWithType('Payment successful! You\'ll receive an email receipt shortly.', 'success');
-            await sendPostcard(paymentIntent);
+            await sendPostcard(confirmedPaymentIntent);
             setIsLoading(false);
           }
         } else {
-          console.error('Unexpected payment status:', paymentIntent?.status);
+          console.error('Unexpected payment status:', confirmedPaymentIntent?.status);
           ev.complete('fail');
-          setMessageWithType(`Payment failed with status: ${paymentIntent?.status || 'unknown'}`, 'error');
+          setMessageWithType(`Payment failed with status: ${confirmedPaymentIntent?.status || 'unknown'}`, 'error');
           setIsLoading(false);
         }
       } catch (error) {
@@ -248,7 +251,7 @@ const CheckoutForm = (props) => {
         setIsLoading(false);
       }
     });
-  }, [stripe, paymentRequest, cost, props.billingDetails, props.email, props.paymentIntent.client_secret, sendPostcard]);
+  }, [stripe, paymentRequest, cost, props, sendPostcard]);
 
   // Update the payment request when cost changes
   useEffect(() => {
