@@ -75,11 +75,14 @@ const CheckoutForm = (props) => {
     setMessageType(type);
   };
 
-  const sendPostcard = React.useCallback(async (paymentIntent = null) => {
+  const sendPostcard = React.useCallback(async (paymentIntent = null, emailOverride = null) => {
+    // Use emailOverride if provided (from Apple Pay), otherwise use form email
+    const emailToSend = emailOverride || props.email;
+    
     let body = {
       to: {
         ...props.billingDetails,
-        email: props.email // Add email to the billing details
+        email: emailToSend // Use the correct email for receipt
       },
       paymentIntent : paymentIntent === null ? props.paymentIntent : paymentIntent,
       nonce : document.querySelector('input[name="nonce"]').value,
