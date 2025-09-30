@@ -164,6 +164,7 @@ const CheckoutForm = (props) => {
 
     pr.on('paymentmethod', async (ev) => {
       console.log('Apple Pay paymentmethod event triggered');
+      console.log('Payment method details:', ev.paymentMethod);
       
       // Validate required fields
       if (!props.billingDetails.line1 || props.billingDetails.line1.length === 0) {
@@ -173,14 +174,23 @@ const CheckoutForm = (props) => {
         return;
       }
 
-      if (props.email.length === 0) {
-        console.error('Validation failed: no email');
+      // Use email from Apple Pay if user hasn't entered one
+      const emailToUse = props.email.length > 0 ? props.email : (ev.payerEmail || '');
+      
+      if (emailToUse.length === 0) {
+        console.error('Validation failed: no email from form or Apple Pay');
         ev.complete('fail');
-        setMessageWithType('Please enter your email address first.', 'error');
+        setMessageWithType('Please enter your email address or ensure Apple Pay provides it.', 'error');
         return;
       }
 
+      // Update email state if we got it from Apple Pay
+      if (props.email.length === 0 && ev.payerEmail) {
+        props.setEmail(ev.payerEmail);
+      }
+
       console.log('Starting payment confirmation with client_secret:', props.paymentIntent.client_secret);
+      console.log('Using email:', emailToUse);
       setIsLoading(true);
 
       try {
