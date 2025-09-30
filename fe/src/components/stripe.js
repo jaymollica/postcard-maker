@@ -425,23 +425,11 @@ const CheckoutForm = (props) => {
       
       <form className="stripeform" onSubmit={handleSubmit}>
         {/* Payer name field */}
-        <div style={{display: 'flex', flexDirection: 'row', marginBottom: '1em'}}>
-          <label style={{alignSelf: 'center', minWidth: '5em', marginRight: '1em', textAlign: 'end'}} htmlFor='payerName'>
-            Your name<br /><small>(for payment)</small>
+        <div className="form-row">
+          <label htmlFor='payerName'>
+            Your name<small>(for payment)</small>
           </label>
           <input
-            style={{ 
-              backgroundColor: 'rgb(255, 255, 255)',
-              border: '1px solid rgb(204, 204, 204)',
-              borderRadius: '4px',
-              boxSizing: 'border-box',
-              minHeight: '38px',
-              outline: '0px',
-              padding: '0px 8px',
-              width: '100%',
-              marginBottom: 'auto',
-
-            }}
             type="text"
             id='payerName'
             onChange={ e => {
@@ -457,23 +445,11 @@ const CheckoutForm = (props) => {
         </div>
 
         {/* Email field */}
-        <div style={{display: 'flex', flexDirection: 'row', marginBottom: '1em'}}>
-          <label style={{alignSelf: 'center', minWidth: '5em', marginRight: '1em', textAlign: 'end'}} htmlFor='email'>
-            Email<br /><small>(for receipt)</small>
+        <div className="form-row">
+          <label htmlFor='email'>
+            Email<small>(for receipt)</small>
           </label>
           <input
-            style={{ 
-              backgroundColor: 'rgb(255, 255, 255)',
-              border: '1px solid rgb(204, 204, 204)',
-              borderRadius: '4px',
-              boxSizing: 'border-box',
-              minHeight: '38px',
-              outline: '0px',
-              padding: '0px 8px',
-              width: '100%',
-              marginBottom: 'auto',
-
-            }}
             type="email"
             id='email'
             onChange={ e => {
@@ -489,50 +465,26 @@ const CheckoutForm = (props) => {
         </div>
 
         {/* Promo code section */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '1em', alignItems: 'flex-end' }}>
-          <div style={{ flex: 1 }}>
-            <input 
-              type="text" 
-              value={promoInput}
-              onChange={(e) => setPromoInput(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  validatePromoCode();
-                }
-              }}
-              style={{ 
-                backgroundColor: 'rgb(255, 255, 255)',
-                border: '1px solid rgb(204, 204, 204)',
-                borderRadius: '4px',
-                boxSizing: 'border-box',
-                minHeight: '38px',
-                outline: '0px',
-                padding: '0px 8px',
-                width: '100%',
-                marginBottom: '0',
-              }}
-              placeholder="Enter promo code" 
-              disabled={promoValidating || Object.keys(promoCode).length > 0}
-            />
-          </div>
+        <div className="promo-section">
+          <input 
+            type="text" 
+            value={promoInput}
+            onChange={(e) => setPromoInput(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                validatePromoCode();
+              }
+            }}
+            placeholder="Enter promo code" 
+            disabled={promoValidating || Object.keys(promoCode).length > 0}
+          />
           
           {Object.keys(promoCode).length === 0 ? (
             <button 
               type="button"
               onClick={validatePromoCode}
               disabled={promoValidating || promoInput.trim().length === 0}
-              style={{
-                backgroundColor: promoValidating ? '#94a3b8' : '#3b82f6',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                padding: '8px 16px',
-                minHeight: '38px',
-                cursor: promoValidating ? 'not-allowed' : 'pointer',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}
             >
               {promoValidating ? 'Validating...' : 'Apply'}
             </button>
@@ -540,17 +492,7 @@ const CheckoutForm = (props) => {
             <button 
               type="button"
               onClick={clearPromoCode}
-              style={{
-                backgroundColor: '#ef4444',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                padding: '8px 16px',
-                minHeight: '38px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}
+              className="remove"
             >
               Remove
             </button>
@@ -559,7 +501,7 @@ const CheckoutForm = (props) => {
 
         {/* Apple Pay / Google Pay Button */}
         {canMakePayment && paymentRequest && cost >= 50 && (
-          <div style={{ marginBottom: '24px' }}>
+          <div className="apple-pay-container">
             <PaymentRequestButtonElement 
               options={{
                 paymentRequest,
@@ -572,13 +514,7 @@ const CheckoutForm = (props) => {
                 },
               }}
             />
-            <div style={{ 
-              textAlign: 'center', 
-              margin: '16px 0',
-              color: '#666',
-              fontSize: '14px',
-              fontWeight: '300'
-            }}>
+            <div className="apple-pay-divider">
               or pay with card
             </div>
           </div>
