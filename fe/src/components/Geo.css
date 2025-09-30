@@ -1,34 +1,44 @@
 .artgen{
-	max-width: 800px;
+	max-width: 680px;
 	margin: 0 auto;
-	padding: 20px;
+	padding: 40px 20px;
 	box-sizing: border-box;
 }
 .postcardart{
-	max-width: 800px;
+	max-width: 680px;
 	width: 100%;
 	display: block;
 	margin: 0 auto;
 	box-sizing: border-box;
+	border: 1px solid #ddd;
 }
 .makepostcard{
-	margin: 20px auto 10px auto;
-	padding: 20px 35px;
-	border: 2px solid white;
-	border-radius: 5px;
+	margin: 32px auto 0 auto;
+	padding: 12px 32px;
+	border: 1px solid #000;
+	border-radius: 0;
 	display: block;
-	max-width: calc(800px - 40px);
+	max-width: 680px;
 	cursor: pointer;
-	transition: background-color 0.25s ease, border-color 0.25s ease;
+	transition: opacity 0.2s ease;
 	box-sizing: border-box;
+	background: #000;
+	color: #fff;
+	font-size: 16px;
+	font-weight: 300;
+}
+.makepostcard:hover{
+	opacity: 0.8;
 }
 .makepostcard.imageloaded{
-	background: green;
-	border-color: green;
+	background: #000;
+	border-color: #000;
+	color: #fff;
 }
 .makepostcard.imageloading{
-	color: #333;
-	background: lightgray;
-	border-color: gray;
+	color: #666;
+	background: #f5f5f5;
+	border-color: #ddd;
 	cursor: not-allowed;
+	opacity: 1;
 }
