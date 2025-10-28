@@ -483,11 +483,6 @@ const CheckoutForm = (props) => {
       }).format(cost / 100)}</h2>
       <div className="description">Complete your payment to send your postcard. Shipping rates may vary by location.</div>
       
-      {/* Show any error or success messages */}
-      {message && (
-        <div id="payment-message" className={messageType} dangerouslySetInnerHTML={{ __html: message }}></div>
-      )}
-      
       <form className="stripeform" onSubmit={handleSubmit}>
         {/* Payer name field */}
         <div className="form-row">
@@ -612,6 +607,11 @@ const CheckoutForm = (props) => {
           {isLoading ? ButtonLabelVerifying('Processing Payment') : (paymentSuccessful ? ButtonLabelVerified('Payment Complete') : ButtonLabelVerify(`Pay ${new Intl.NumberFormat('en-US', { currency: 'USD', style: 'currency' }).format(cost / 100)}`)) }
         </button>
       </form>
+      
+      {/* Show any error or success messages - now after the form */}
+      {message && (
+        <div id="payment-message" className={messageType} dangerouslySetInnerHTML={{ __html: message }}></div>
+      )}
     </div>
   );
 };

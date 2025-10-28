@@ -169,38 +169,40 @@
 }
 
 /* Payment messages - minimal */
-.stripecontainer .stripeform #payment-message{
+#payment-message{
 	color: #000;
-	margin: 0 0 24px 0;
-	text-align: left;
-	padding: 12px 0;
+	margin: 32px 0 0 0;
+	text-align: center;
+	padding: 24px 20px;
 	border-radius: 0;
 	background: transparent;
-	border: none;
-	font-size: 14px;
+	border: 1px solid #e0e0e0;
+	font-size: 16px;
 	line-height: 1.6;
 	font-weight: 300;
+	max-width: 680px;
+	box-sizing: border-box;
 }
 
-.stripecontainer .stripeform #payment-message.success {
-	background: transparent;
-	border: none;
+#payment-message.success {
+	background: #f8f9fa;
+	border: 1px solid #d4edda;
 	color: #000;
 }
 
-.stripecontainer .stripeform #payment-message.error {
-	background: transparent;
-	border: none;
+#payment-message.error {
+	background: #fff5f5;
+	border: 1px solid #f8d7da;
 	color: #000;
 }
 
-.stripecontainer .stripeform #payment-message a{
+#payment-message a{
 	color: #000;
-	font-weight: 300;
+	font-weight: 400;
 	text-decoration: underline;
 }
 
-.stripecontainer .stripeform #payment-message a:hover{
+#payment-message a:hover{
 	opacity: 0.6;
 	text-decoration: underline;
 }
