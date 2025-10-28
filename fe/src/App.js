@@ -4,6 +4,52 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Form from './components/form.js';
 import Stripe from './components/stripe.js';
 
+// Footer component with privacy policy and terms links
+function Footer() {
+  return (
+    <footer style={{
+      marginTop: '60px',
+      paddingTop: '40px',
+      paddingBottom: '40px',
+      borderTop: '1px solid #e0e0e0',
+      textAlign: 'center',
+      fontSize: '14px',
+      color: '#666',
+      fontWeight: 300
+    }}>
+      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '0 20px' }}>
+        <a 
+          href="https://www.sweetpost.art/privacy" 
+          style={{
+            color: '#000',
+            textDecoration: 'none',
+            margin: '0 15px',
+            fontWeight: 300
+          }}
+          onMouseOver={(e) => e.target.style.opacity = '0.6'}
+          onMouseOut={(e) => e.target.style.opacity = '1'}
+        >
+          Privacy Policy
+        </a>
+        <span style={{ color: '#ddd' }}>|</span>
+        <a 
+          href="httsp://www.sweetpost.art/terms" 
+          style={{
+            color: '#000',
+            textDecoration: 'none',
+            margin: '0 15px',
+            fontWeight: 300
+          }}
+          onMouseOver={(e) => e.target.style.opacity = '0.6'}
+          onMouseOut={(e) => e.target.style.opacity = '1'}
+        >
+          Terms of Service
+        </a>
+      </div>
+    </footer>
+  );
+}
+
 function App() {
 
   const [billingDetails, setBillingDetails] = useState({});
@@ -120,6 +166,8 @@ function App() {
             setPayerName={setPayerName}
             elementsOptions={{paymentIntent: paymentIntent, setPaymentIntent: setPaymentIntent}}  
           /> }
+        
+        <Footer />
       </div>
     );
   }
@@ -140,6 +188,7 @@ function App() {
         >
           Thank you for your order! 
         </div>
+        <Footer />
       </>
     );
   }
@@ -171,6 +220,7 @@ function App() {
         >
           Sorry your order canceled. If you want to try again click <a href={url.toString()}>here</a>.
         </div>
+        <Footer />
       </>
     );
   }
