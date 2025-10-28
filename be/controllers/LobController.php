@@ -52,30 +52,18 @@ class LobController
                     
                     $merge_variables = $data->merge_variables ?? (object) array();
 
-                    // Only add artwork data if it exists in the incoming data
-                    if (property_exists($data, 'artworkTitle')) {
-                        $merge_variables->artworkTitle = $data->artworkTitle;
+                    // Check merge_variables for properties, not $data directly
+                    // Set default values for footer variables if not provided
+                    if (!property_exists($merge_variables, 'footerHeader') || empty($merge_variables->footerHeader)) {
+                        $merge_variables->footerHeader = 'About This Postcard';
                     }
-                    if (property_exists($data, 'artworkArtist')) {
-                        $merge_variables->artworkArtist = $data->artworkArtist;
+                    
+                    if (!property_exists($merge_variables, 'footerMessage') || empty($merge_variables->footerMessage)) {
+                        $merge_variables->footerMessage = 'This postcard features artwork from a public domain collection.';
                     }
-                    if (property_exists($data, 'artworkYear')) {
-                        $merge_variables->artworkYear = $data->artworkYear;
-                    }
-                    if (property_exists($data, 'artworkMuseum')) {
-                        $merge_variables->artworkMuseum = $data->artworkMuseum;
-                    }
-                    if (property_exists($data, 'userMessage') && !empty(trim($data->userMessage))) {
-                        $merge_variables->userMessage = trim($data->userMessage);
-                    }
-                    if (property_exists($data, 'footerHeader') && !empty(trim($data->footerHeader))) {
-                        $merge_variables->footerHeader = trim($data->footerHeader);
-                    }
-                    if (property_exists($data, 'footerMessage') && !empty(trim($data->footerMessage))) {
-                        $merge_variables->footerMessage = trim($data->footerMessage);
-                    }
-                    if (property_exists($data, 'footerUrl') && !empty(trim($data->footerUrl))) {
-                        $merge_variables->footerMefooterUrlssage = trim($data->footerUrl);
+                    
+                    if (!property_exists($merge_variables, 'footerUrl') || empty($merge_variables->footerUrl)) {
+                        $merge_variables->footerUrl = 'sweetpost.art';
                     }
 
                     // Replace YOUR_API_KEY with your actual API key.
@@ -145,7 +133,10 @@ class LobController
                                 'artworkArtist' => $data->merge_variables->artworkArtist ?? '',
                                 'artworkYear' => $data->merge_variables->artworkYear ?? '',
                                 'artworkMuseum' => $data->merge_variables->artworkMuseum ?? '',
-                                'userMessage' => $data->merge_variables->userMessage ?? ''
+                                'userMessage' => $data->merge_variables->userMessage ?? '',
+                                'footerHeader' => $data->merge_variables->footerHeader ?? '',
+                                'footerMessage' => $data->merge_variables->footerMessage ?? '',
+                                'footerUrl' => $data->merge_variables->footerUrl ?? '',
                             ];
                             
                             $senderData = [
