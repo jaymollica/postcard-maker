@@ -33,7 +33,7 @@ function Footer() {
         </a>
         <span style={{ color: '#ddd' }}>|</span>
         <a 
-          href="httsp://www.sweetpost.art/terms" 
+          href="https://www.sweetpost.art/terms" 
           style={{
             color: '#000',
             textDecoration: 'none',
