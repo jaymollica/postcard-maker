@@ -80,3 +80,18 @@ For use in your generative art project, you will need to include the embed scrip
 
 ## Going Live
 Promo codes are managed on Stripe. Make sure the ones you want to use are set in live environment not just the test environment. Super easy to change just follow their instructions and copy the config. Also replace the test keys in Settings > Security > Secrets and variables > Actions with their corresponding live keys and in the .env files on the server. Make sure Lob's live env has the correct templates and the .env & .domain-template-map.json files are updated with the corresponding template ids.
+
+## Default Template
+The default postcard template has a number of preset variables you can pass values to:
+
+artworkTitle
+artworkArtist
+artworkYear
+artworkMuseum
+artworkObjectId
+artworkImageUrl
+userMessage
+
+footerTitle
+footerMessage
+footerUrl

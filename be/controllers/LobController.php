@@ -68,6 +68,15 @@ class LobController
                     if (property_exists($data, 'userMessage') && !empty(trim($data->userMessage))) {
                         $merge_variables->userMessage = trim($data->userMessage);
                     }
+                    if (property_exists($data, 'footerHeader') && !empty(trim($data->footerHeader))) {
+                        $merge_variables->footerHeader = trim($data->footerHeader);
+                    }
+                    if (property_exists($data, 'footerMessage') && !empty(trim($data->footerMessage))) {
+                        $merge_variables->footerMessage = trim($data->footerMessage);
+                    }
+                    if (property_exists($data, 'footerUrl') && !empty(trim($data->footerUrl))) {
+                        $merge_variables->footerMefooterUrlssage = trim($data->footerUrl);
+                    }
 
                     // Replace YOUR_API_KEY with your actual API key.
                     $apiKey = $_ENV['LOB_API_KEY'];
