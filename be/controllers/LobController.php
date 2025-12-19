@@ -63,7 +63,11 @@ class LobController
                     }
                     
                     if (!property_exists($merge_variables, 'footerUrl') || empty($merge_variables->footerUrl)) {
-                        $merge_variables->footerUrl = 'sweetpost.art';
+                        $merge_variables->footerUrl = 'Make your own at www.sweetpost.art';
+                    }
+
+                    if (!property_exists($merge_variables, 'qrCodeUrl') || empty($merge_variables->qrCodeUrl)) {
+                        $merge_variables->qrCodeUrl = 'https://www.sweetpost.art';
                     }
 
                     // Replace YOUR_API_KEY with your actual API key.
@@ -137,6 +141,7 @@ class LobController
                                 'footerHeader' => $data->merge_variables->footerHeader ?? '',
                                 'footerMessage' => $data->merge_variables->footerMessage ?? '',
                                 'footerUrl' => $data->merge_variables->footerUrl ?? '',
+                                'qrCodeUrl' => $data->merge_variables->qrCodeUrl ?? '',
                             ];
                             
                             $senderData = [
