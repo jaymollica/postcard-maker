@@ -101,11 +101,34 @@ $server->allowedOrigin = $allowed_origins;
 // or a wildcard
 // $server->allowedOrigin = '*';
 
-if( in_array(get_origin(), $allowed_origins) ){
-    header("Access-Control-Allow-Origin: " . get_origin());
+$current_origin = get_origin();
+
+// Log for debugging
+error_log("=== REQUEST DEBUG ===");
+error_log("Method: " . $_SERVER['REQUEST_METHOD']);
+error_log("Origin: " . $current_origin);
+error_log("Allowed origins: " . json_encode($allowed_origins));
+
+// Set CORS header for all allowed origins
+if( in_array($current_origin, $allowed_origins) ){
+    header("Access-Control-Allow-Origin: " . $current_origin);
 }
 
+// Handle OPTIONS preflight requests BEFORE they reach controllers
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    error_log("OPTIONS request - sending CORS headers and exiting");
 
+    // Always send CORS headers for OPTIONS if origin is allowed
+    if (in_array($current_origin, $allowed_origins)) {
+        header("Access-Control-Allow-Origin: " . $current_origin);
+        header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+        header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Access-Control-Allow-Origin");
+        header("Access-Control-Max-Age: 86400");
+    }
+
+    http_response_code(200);
+    exit(0);
+}
 
 $server->addClass('StripeController');
 $server->addClass('LobController');
