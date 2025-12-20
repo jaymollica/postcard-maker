@@ -112,6 +112,17 @@ class LobController
                             'back' => $back,
                             'use_type' => 'marketing',
                         );
+
+                        // Add return address for international mail
+                        if (strtoupper($country) !== 'US') {
+                            $form_params['from[name]'] = $_ENV['LOB_RETURN_NAME'] ?? 'SweetPost';
+                            $form_params['from[address_line1]'] = $_ENV['LOB_RETURN_ADDRESS_LINE1'] ?? '';
+                            $form_params['from[address_line2]'] = $_ENV['LOB_RETURN_ADDRESS_LINE2'] ?? '';
+                            $form_params['from[address_city]'] = $_ENV['LOB_RETURN_CITY'] ?? '';
+                            $form_params['from[address_state]'] = $_ENV['LOB_RETURN_STATE'] ?? '';
+                            $form_params['from[address_zip]'] = $_ENV['LOB_RETURN_ZIP'] ?? '';
+                            $form_params['from[address_country]'] = 'US';
+                        }
                         
                         foreach( $merge_variables as $key => $value ){
                             $form_params["merge_variables[$key]"] = $value;
