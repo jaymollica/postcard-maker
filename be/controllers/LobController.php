@@ -29,9 +29,12 @@ class LobController
 
             try {
                 $payment_intent = $stripe->paymentIntents->retrieve($payment_intent_id);
-                
-                // Get domain-specific cost
-                $default_cost = get_cost_for_domain($data->artistUrl);
+
+                // Get country from address data
+                $country = $data->to->country ?? 'US';
+
+                // Get domain-specific cost based on country
+                $default_cost = get_cost_for_domain($data->artistUrl, $country);
                 $actual_cost = $default_cost; // Default cost
                 
                 if( isset($data->promo->active) && $data->promo->active ){
@@ -47,7 +50,8 @@ class LobController
                     }
                 }
                 
-                // Check if the payment intent has succeeded or if it's a sorta free item
+                // Check if the payment intent has succeeded or if it's a free/cheap promo item
+                // Items under $0.50 bypass payment since Stripe requires minimum $0.50
                 if ($payment_intent->status === 'succeeded' || $actual_cost < 50) {
                     
                     $merge_variables = $data->merge_variables ?? (object) array();
@@ -91,7 +95,7 @@ class LobController
                         "address_city"     => $data->to->city ?? '',
                         "address_state"     => $data->to->state ?? '',
                         "address_zip"     => $data->to->postal_code ?? '',
-                        'address_country' => 'US',
+                        'address_country' => $country,
                     );
 
                     try {

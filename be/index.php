@@ -53,9 +53,9 @@ function verify_nonce($nonce, $action, $lifetime = 86400) {
 // global $default_cost;
 // $default_cost = 80;
 
-function get_cost_for_domain($domain_url) {
+function get_cost_for_domain($domain_url, $country = 'US') {
     global $domain_template_map;
-    
+
     $domain_config = null;
     foreach ($domain_template_map as $config) {
         if ($config->url === $domain_url) {
@@ -63,9 +63,17 @@ function get_cost_for_domain($domain_url) {
             break;
         }
     }
-    
-    // Return domain-specific cost or fallback to 80
-    return $domain_config->cost ?? 80;
+
+    // Determine if international
+    $is_international = strtoupper($country) !== 'US';
+
+    if ($is_international) {
+        // Return international cost or fallback to 500 ($5.00)
+        return $domain_config->cost_international ?? 500;
+    } else {
+        // Return domestic cost or fallback to 80 ($0.80)
+        return $domain_config->cost ?? 80;
+    }
 }
 
 // api controllers/setup

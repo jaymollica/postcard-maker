@@ -1,13 +1,16 @@
 const BACKEND_URL = 'http://localhost:9999';
-const FRONTEND_ORIGIN = 'localhost:3000';
+const FRONTEND_ORIGIN = 'localhost:8888';
 
 function Lobby({button, canvas,  ...optionalParams} = {}){
 
 	this._send = async function({canvas, nonce, optionalParams}){
+
+		//alert(this.optionalParams.getMessage);
 		canvas = canvas instanceof HTMLElement === false && typeof canvas === 'string' ? document.querySelector(canvas) : canvas;
 
 		const imageData = canvas.toDataURL('image/jpeg');
 
+		console.log(optionalParams);
 	
 		const res = await fetch(BACKEND_URL + '/img', {
 			method: "POST",
@@ -19,7 +22,8 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 				],
 				imageData: imageData,
 				nonce: nonce,
-				optionalParams: this.optionalParams,
+				optionalParams: optionalParams,
+
 			}),
 			credentials: 'same-origin',
 			cache: 'no-cache',
@@ -37,7 +41,8 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 		if( imageUrl ){
 			let url = "//" + FRONTEND_ORIGIN + "?imgUrl=" + encodeURIComponent(imageUrl);
 			if( typeof optionalParams !== 'undefined' && Object.keys(optionalParams).length > 0 ){
-				url += '&optionalParams=' + btoa(JSON.stringify(optionalParams));
+				// Use simple URL encoding instead of base64 to avoid Unicode issues
+				url += '&optionalParams=' + encodeURIComponent(JSON.stringify(optionalParams));
 			}
 			url += '&artistUrl=' + encodeURIComponent(window.location.origin);
 			window.open(url, "_self");

@@ -23,42 +23,58 @@ class StripeController
       $stripe = new \Stripe\StripeClient($_ENV['STRIPE_API_KEY']);
 
       try {
-        // Get domain-specific cost
-        $default_cost = get_cost_for_domain($data->artistUrl ?? get_origin());
-        
+        // Get country from address data
+        $country = $data->country ?? 'US';
+
+        // Get domain-specific cost based on country
+        $default_cost = get_cost_for_domain($data->artistUrl ?? get_origin(), $country);
+
         $promos = $stripe->promotionCodes->all(array(
           'active' => true,
           'code' => $data->promo
         ));
 
         if( count($promos->data) > 0 ){
-          
+
           // always return the first promo
           $promo = $promos->data[0];
-          
+
           if( $promo->active ){
-            
-            if( $promo->coupon->percent_off !== null ){
-              $new_cost = $default_cost - ($default_cost * ($promo->coupon->percent_off / 100));
+            // In Stripe SDK v19, coupon ID is nested under promotion->coupon
+            $coupon_id = $promo->promotion->coupon ?? null;
+
+            if (!$coupon_id) {
+              return ['result' => 'error', 'message' => 'Coupon ID not found in promotion code'];
             }
-            else if( $promo->coupon->amount_off !== null ){
-              $new_cost = $default_cost - $promo->coupon->amount_off;
+
+            $coupon = $stripe->coupons->retrieve($coupon_id);
+
+            if( $coupon->percent_off !== null ){
+              $new_cost = $default_cost - ($default_cost * ($coupon->percent_off / 100));
+            }
+            else if( $coupon->amount_off !== null ){
+              $new_cost = $default_cost - $coupon->amount_off;
             }
 
             if( $new_cost < 0 ){
               $new_cost = 0;
             }
 
-            // update payment intent with new cost with promo applied
+            // Update payment intent with new cost with promo applied
+            // Note: Stripe requires minimum $0.50, so skip update for amounts below that
             if( $new_cost >= 50 ){
-              // update the payment intent
               $stripe->paymentIntents->update($data->paymentIntent->id, array(
                 'amount' => $new_cost,
               ));
             }
+            // For free or very cheap items, keep original payment intent but don't charge it
           }
 
-          return $promo;
+          // Return promo with coupon data attached for frontend compatibility
+          // Frontend expects coupon to be a direct property (old Stripe API structure)
+          $response = json_decode(json_encode($promo), true); // Convert to array
+          $response['coupon'] = json_decode(json_encode($coupon), true); // Add coupon data
+          return $response;
         }
         else{
           return ['result' => 'error', 'message' => 'No promo code ' . $data->promo];
@@ -83,26 +99,34 @@ class StripeController
       }
       
       try {
-          // Get domain-specific cost instead of using global
-          $default_cost = get_cost_for_domain($data->artistUrl ?? get_origin());
+          // Get country from address data
+          $country = $data->country ?? 'US';
+
+          // Get domain-specific cost based on country
+          $default_cost = get_cost_for_domain($data->artistUrl ?? get_origin(), $country);
           $new_cost = $default_cost;
-        
+
           $stripe = new \Stripe\StripeClient($_ENV['STRIPE_API_KEY']);
 
           if( !empty($data->promoCodeId) ){
 
-            $promo = $stripe->promotionCodes->retrieve(
-              $data->promoCodeId,
-              []
-            );
+            $promo = $stripe->promotionCodes->retrieve($data->promoCodeId);
 
             if( $promo->active ){
+              // In Stripe SDK v19, coupon ID is nested under promotion->coupon
+              $coupon_id = $promo->promotion->coupon ?? null;
 
-              if( $promo->coupon->percent_off !== null ){
-                  $new_cost = $default_cost - ($default_cost * ($promo->coupon->percent_off / 100));
+              if (!$coupon_id) {
+                throw new \Exception('Coupon ID not found in promotion code');
               }
-              else if( $promo->coupon->amount_off !== null ){
-                  $new_cost = $default_cost - $promo->coupon->amount_off;
+
+              $coupon = $stripe->coupons->retrieve($coupon_id);
+
+              if( $coupon->percent_off !== null ){
+                  $new_cost = $default_cost - ($default_cost * ($coupon->percent_off / 100));
+              }
+              else if( $coupon->amount_off !== null ){
+                  $new_cost = $default_cost - $coupon->amount_off;
               }
 
               if( $new_cost < 0 ){
@@ -111,20 +135,15 @@ class StripeController
             }
           }
 
-          if( $new_cost !== 0 ){
+          // Create a PaymentIntent with amount and currency
+          // Note: Stripe allows $0 payment intents for tracking purposes
+          $paymentIntent = $stripe->paymentIntents->create([
+            'amount' => $new_cost,
+            'currency' => 'usd',
+            'payment_method_types' => ['card'],
+          ]);
 
-            // Create a PaymentIntent with amount and currency
-            $paymentIntent = $stripe->paymentIntents->create([
-              'amount' => $new_cost, // update this with new cost if promocodeId retrieves successfully
-              'currency' => 'usd',
-              'payment_method_types' => ['card'],
-            ]);
-            
-            return $paymentIntent;
-          }
-          else{
-            return ['result' => 'error', 'message' => 'Cannot make paymentIntent when cost is 0'];
-          }
+          return $paymentIntent;
 
         } catch (\Throwable $th) {
           //throw $th;

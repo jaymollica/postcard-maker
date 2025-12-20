@@ -32,15 +32,15 @@ class AWSController{
         // Configure AWS S3 client
         $s3 = new S3Client([
             'version' => 'latest',
-            'region'  => 'us-west-2',
+            'region'  => $_ENV['AWS_REGION'] ?? 'us-west-2',
             'credentials' => [
-                'key' => $_ENV['AWS_KEY'],
-                'secret' => $_ENV['AWS_SECRET'],
+                'key' => $_ENV['AWS_ACCESS_KEY_ID'],
+                'secret' => $_ENV['AWS_SECRET_ACCESS_KEY'],
             ],
         ]);
 
         // Upload the image to S3
-        $bucket = 'cc0-postcard-bucket';
+        $bucket = $_ENV['AWS_BUCKET'] ?? 'cc0-postcard-bucket';
         $key = bin2hex(random_bytes(16)) . '.jpg';
 
         try {

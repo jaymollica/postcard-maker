@@ -16,13 +16,17 @@ class CostController
         }
 
         try {
-            // Get domain-specific cost
-            $cost = get_cost_for_domain($data->artistUrl ?? get_origin());
-            
+            // Get country from request or default to US
+            $country = $data->country ?? 'US';
+
+            // Get domain-specific cost based on country
+            $cost = get_cost_for_domain($data->artistUrl ?? get_origin(), $country);
+
             return [
                 'result' => 'success',
                 'cost' => $cost,
-                'domain' => $data->artistUrl ?? get_origin()
+                'domain' => $data->artistUrl ?? get_origin(),
+                'country' => $country
             ];
         } catch (\Exception $ex) {
             http_response_code(500);

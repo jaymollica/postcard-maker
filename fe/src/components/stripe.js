@@ -42,7 +42,8 @@ const CheckoutForm = (props) => {
           },
           body: JSON.stringify({
             artistUrl: artistUrl,
-            nonce: document.querySelector('input[name="nonce"]').value
+            nonce: document.querySelector('input[name="nonce"]').value,
+            country: props.billingDetails.country || 'US'
           }),
           mode: 'cors',
           credentials: 'same-origin',
@@ -68,7 +69,56 @@ const CheckoutForm = (props) => {
     };
 
     fetchDomainCost();
-  }, []);
+  }, [props.billingDetails.country]); // Re-fetch when country changes
+
+  // Update payment intent when cost changes (e.g., country selection)
+  useEffect(() => {
+    const updatePaymentIntent = async () => {
+      // Only update if we have a country and cost has changed from default
+      if (!props.billingDetails.country || cost === 0) {
+        console.log('Skipping payment intent update:', { country: props.billingDetails.country, cost });
+        return;
+      }
+
+      console.log('Updating payment intent with:', { country: props.billingDetails.country, cost });
+
+      const urlSearchParams = new URLSearchParams(window.location.search);
+      const artistUrl = urlSearchParams.get('artistUrl');
+
+      try {
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/stripe', {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            'Access-Control-Allow-Origin': process.env.REACT_APP_FRONTEND_ORIGIN
+          },
+          body: JSON.stringify({
+            items: [{ id: "postcard-4x6" }],
+            nonce: document.querySelector('input[name="nonce"]').value,
+            artistUrl: artistUrl,
+            country: props.billingDetails.country
+          }),
+          mode: 'cors',
+          credentials: 'same-origin',
+          cache: 'no-cache',
+          redirect: 'follow'
+        });
+
+        const data = await response.json();
+        console.log('Payment intent response:', data);
+        if (data.client_secret) {
+          console.log('Setting payment intent with client_secret:', data.client_secret);
+          props.setPaymentIntent(data);
+        } else {
+          console.error('No client_secret in payment intent response:', data);
+        }
+      } catch (error) {
+        console.error('Error updating payment intent:', error);
+      }
+    };
+
+    updatePaymentIntent();
+  }, [cost, props.billingDetails.country]); // Update when cost or country changes
 
   const setMessageWithType = (msg, type = '') => {
     setMessage(msg);
@@ -93,7 +143,8 @@ const CheckoutForm = (props) => {
       paymentIntent : paymentIntent === null ? props.paymentIntent : paymentIntent,
       nonce : document.querySelector('input[name="nonce"]').value,
       promo : Object.keys(promoCode).length > 0 ? promoCode : null,
-      merge_variables : {}
+      merge_variables : {},
+      country: props.billingDetails.country || 'US' // Pass country to backend
     };
     
     const urlSearchParams = new URLSearchParams(document.location.search);
@@ -160,7 +211,7 @@ const CheckoutForm = (props) => {
     const { billingDetails, email, setEmail, paymentIntent } = props;
 
     const pr = stripe.paymentRequest({
-      country: 'US',
+      country: billingDetails.country || 'US',
       currency: 'usd',
       total: {
         label: 'Postcard',
@@ -294,7 +345,8 @@ const CheckoutForm = (props) => {
       promo: promoInput.trim(),
       nonce: document.querySelector('input[name="nonce"]').value,
       paymentIntent: props.paymentIntent,
-      artistUrl: artistUrl // Include artistUrl for domain-specific calculations
+      artistUrl: artistUrl, // Include artistUrl for domain-specific calculations
+      country: props.billingDetails.country || 'US' // Include country for pricing
     };
 
     try {
@@ -344,7 +396,8 @@ const CheckoutForm = (props) => {
             nonce: promoBody.nonce,
             cost: newCost,
             promoCodeId: promoResponseDecoded.id,
-            artistUrl: artistUrl // Include artistUrl for domain-specific processing
+            artistUrl: artistUrl, // Include artistUrl for domain-specific processing
+            country: props.billingDetails.country || 'US' // Include country for pricing
           }),
           mode: 'cors',
           credentials: 'same-origin',
@@ -426,6 +479,7 @@ const CheckoutForm = (props) => {
                 line1: props.billingDetails.line1,
                 line2: props.billingDetails.line2,
                 postal_code: props.billingDetails.postal_code,
+                country: props.billingDetails.country || 'US'
               }
             },
           },

@@ -103,12 +103,16 @@ function App() {
           })
           .then(res => res.json())
           .then(data => {
+            console.log('Initial payment intent response:', data);
             if (data.client_secret) {
+              console.log('Payment intent created with client_secret:', data.client_secret);
               setPaymentIntent(data);
+            } else {
+              console.error('No client_secret in initial payment intent:', data);
             }
           })
           .catch(error => {
-            console.error(error);
+            console.error('Error creating initial payment intent:', error);
           });
         })
         .catch(error => {
