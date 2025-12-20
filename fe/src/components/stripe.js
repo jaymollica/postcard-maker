@@ -27,6 +27,9 @@ const CheckoutForm = (props) => {
   const [paymentRequest, setPaymentRequest] = useState(null);
   const [canMakePayment, setCanMakePayment] = useState(false);
 
+  // Destructure all props at component level to avoid linting errors
+  const { billingDetails, setPaymentIntent, email, setEmail, payerName, setPayerName, paymentIntent } = props;
+
   // Get domain-specific cost on component mount
   useEffect(() => {
     const fetchDomainCost = async () => {
@@ -43,7 +46,7 @@ const CheckoutForm = (props) => {
           body: JSON.stringify({
             artistUrl: artistUrl,
             nonce: document.querySelector('input[name="nonce"]').value,
-            country: props.billingDetails.country || 'US'
+            country: billingDetails.country || 'US'
           }),
           mode: 'cors',
           credentials: 'same-origin',
@@ -69,18 +72,18 @@ const CheckoutForm = (props) => {
     };
 
     fetchDomainCost();
-  }, [props.billingDetails.country]); // Re-fetch when country changes
+  }, [billingDetails.country]); // Re-fetch when country changes
 
   // Update payment intent when cost changes (e.g., country selection)
   useEffect(() => {
     const updatePaymentIntent = async () => {
       // Only update if we have a country and cost has changed from default
-      if (!props.billingDetails.country || cost === 0) {
-        console.log('Skipping payment intent update:', { country: props.billingDetails.country, cost });
+      if (!billingDetails.country || cost === 0) {
+        console.log('Skipping payment intent update:', { country: billingDetails.country, cost });
         return;
       }
 
-      console.log('Updating payment intent with:', { country: props.billingDetails.country, cost });
+      console.log('Updating payment intent with:', { country: billingDetails.country, cost });
 
       const urlSearchParams = new URLSearchParams(window.location.search);
       const artistUrl = urlSearchParams.get('artistUrl');
@@ -96,7 +99,7 @@ const CheckoutForm = (props) => {
             items: [{ id: "postcard-4x6" }],
             nonce: document.querySelector('input[name="nonce"]').value,
             artistUrl: artistUrl,
-            country: props.billingDetails.country
+            country: billingDetails.country
           }),
           mode: 'cors',
           credentials: 'same-origin',
@@ -108,7 +111,7 @@ const CheckoutForm = (props) => {
         console.log('Payment intent response:', data);
         if (data.client_secret) {
           console.log('Setting payment intent with client_secret:', data.client_secret);
-          props.setPaymentIntent(data);
+          setPaymentIntent(data);
         } else {
           console.error('No client_secret in payment intent response:', data);
         }
@@ -118,33 +121,33 @@ const CheckoutForm = (props) => {
     };
 
     updatePaymentIntent();
-  }, [cost, props.billingDetails.country]); // Update when cost or country changes
+  }, [cost, billingDetails.country, setPaymentIntent]); // Update when cost or country changes
 
   const setMessageWithType = (msg, type = '') => {
     setMessage(msg);
     setMessageType(type);
   };
 
-  const sendPostcard = React.useCallback(async (paymentIntent = null, emailOverride = null) => {
+  const sendPostcard = React.useCallback(async (paymentIntentOverride = null, emailOverride = null) => {
     // Use emailOverride if provided (from Apple Pay), otherwise use form email
-    const emailToSend = emailOverride || props.email;
-    
+    const emailToSend = emailOverride || email;
+
     console.log('sendPostcard called with email:', emailToSend);
-    
+
     // Ensure email is in the billing details
     const billingDetailsWithEmail = {
-      ...props.billingDetails,
+      ...billingDetails,
       email: emailToSend // Explicitly set email in billing details
     };
-    
+
     let body = {
       to: billingDetailsWithEmail, // Use the version with email guaranteed
       email: emailToSend, // Also include at top level for backend compatibility
-      paymentIntent : paymentIntent === null ? props.paymentIntent : paymentIntent,
+      paymentIntent : paymentIntentOverride === null ? paymentIntent : paymentIntentOverride,
       nonce : document.querySelector('input[name="nonce"]').value,
       promo : Object.keys(promoCode).length > 0 ? promoCode : null,
       merge_variables : {},
-      country: props.billingDetails.country || 'US' // Pass country to backend
+      country: billingDetails.country || 'US' // Pass country to backend
     };
     
     const urlSearchParams = new URLSearchParams(document.location.search);
@@ -199,16 +202,13 @@ const CheckoutForm = (props) => {
       console.error('An error occurred:', error);
       setMessageWithType('An error occurred while processing your order. Please try again.', 'error');
     }
-  }, [cost, promoCode, props.billingDetails, props.email, props.paymentIntent]);
+  }, [cost, promoCode, billingDetails, email, paymentIntent]);
 
   // Apple Pay / Payment Request Button setup - create once
   useEffect(() => {
     if (!stripe || paymentRequest) {
       return;
     }
-
-    // Destructure props for the effect
-    const { billingDetails, email, setEmail, paymentIntent } = props;
 
     const pr = stripe.paymentRequest({
       country: billingDetails.country || 'US',
@@ -315,7 +315,7 @@ const CheckoutForm = (props) => {
         setIsLoading(false);
       }
     });
-  }, [stripe, paymentRequest, cost, props, sendPostcard]);
+  }, [stripe, paymentRequest, cost, billingDetails, email, setEmail, paymentIntent, sendPostcard]);
 
   // Update the payment request when cost changes
   useEffect(() => {
@@ -344,9 +344,9 @@ const CheckoutForm = (props) => {
     const promoBody = {
       promo: promoInput.trim(),
       nonce: document.querySelector('input[name="nonce"]').value,
-      paymentIntent: props.paymentIntent,
+      paymentIntent: paymentIntent,
       artistUrl: artistUrl, // Include artistUrl for domain-specific calculations
-      country: props.billingDetails.country || 'US' // Include country for pricing
+      country: billingDetails.country || 'US' // Include country for pricing
     };
 
     try {
@@ -397,7 +397,7 @@ const CheckoutForm = (props) => {
             cost: newCost,
             promoCodeId: promoResponseDecoded.id,
             artistUrl: artistUrl, // Include artistUrl for domain-specific processing
-            country: props.billingDetails.country || 'US' // Include country for pricing
+            country: billingDetails.country || 'US' // Include country for pricing
           }),
           mode: 'cors',
           credentials: 'same-origin',
@@ -407,7 +407,7 @@ const CheckoutForm = (props) => {
 
         const stripeResponseDecoded = await stripeResponse.json();
         if (stripeResponseDecoded.client_secret) {
-          props.setPaymentIntent(stripeResponseDecoded);
+          setPaymentIntent(stripeResponseDecoded);
         }
       }
     } catch (error) {
@@ -431,17 +431,17 @@ const CheckoutForm = (props) => {
     event.preventDefault();
 
     // Validate payer name
-    if( props.payerName.length === 0 ){
+    if( payerName.length === 0 ){
       setMessageWithType('Please enter your name for the payment.', 'error');
       return;
     }
 
     // Validate email before processing payment
-    if( props.email.length === 0 ){
+    if( email.length === 0 ){
       setMessageWithType('Please enter your email address to receive the receipt.', 'error');
       return;
     }
-    else if( props.email.match(
+    else if( email.match(
       // eslint-disable-next-line no-useless-escape
       /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
     ) === null ){
@@ -464,22 +464,22 @@ const CheckoutForm = (props) => {
 
     if( bypassStripe ){
       setPaymentSuccessful(true);
-      sendPostcard(props.paymentIntent);
+      sendPostcard(paymentIntent);
     }
     else{
-      const response = await stripe.confirmCardPayment(props.paymentIntent.client_secret, {
+      const response = await stripe.confirmCardPayment(paymentIntent.client_secret, {
           payment_method: {
             card: elements.getElement(CardElement),
             billing_details: {
-              name: props.payerName, // Use payer name for Stripe billing
-              email: props.email,
+              name: payerName, // Use payer name for Stripe billing
+              email: email,
               address: {
-                city: props.billingDetails.city,
-                state: props.billingDetails.state,
-                line1: props.billingDetails.line1,
-                line2: props.billingDetails.line2,
-                postal_code: props.billingDetails.postal_code,
-                country: props.billingDetails.country || 'US'
+                city: billingDetails.city,
+                state: billingDetails.state,
+                line1: billingDetails.line1,
+                line2: billingDetails.line2,
+                postal_code: billingDetails.postal_code,
+                country: billingDetails.country || 'US'
               }
             },
           },
@@ -547,13 +547,13 @@ const CheckoutForm = (props) => {
             type="text"
             id='payerName'
             onChange={ e => {
-              props.setPayerName(e.target.value)
+              setPayerName(e.target.value)
               // Clear name-related errors when typing
               if (message && (message.includes('name') || message.includes('Name'))) {
                 setMessageWithType('');
               }
             } }
-            value={props.payerName}
+            value={payerName}
             placeholder="Enter your full name"
           />
         </div>
@@ -567,13 +567,13 @@ const CheckoutForm = (props) => {
             type="email"
             id='email'
             onChange={ e => {
-              props.setEmail(e.target.value)
+              setEmail(e.target.value)
               // Clear email-related errors when typing
               if (message && (message.includes('email') || message.includes('Email'))) {
                 setMessageWithType('');
               }
             } }
-            value={props.email}
+            value={email}
             placeholder="Enter your email address"
           />
         </div>
