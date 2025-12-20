@@ -94,10 +94,6 @@ $domain_template_map_string = file_get_contents('./.domain-template-map.json');
 $domain_template_map = json_decode($domain_template_map_string);
 $allowed_origins = array_column($domain_template_map, 'url');
 
-// Add the frontend domain itself as an allowed origin
-$allowed_origins[] = 'https://mail.sweetpost.art';
-$allowed_origins[] = 'http://localhost:8888'; // Local frontend
-
 $server->useCors = true;
 // $server->allowedOrigin = 'http://example.com';
 // or use array of multiple origins
@@ -105,32 +101,11 @@ $server->allowedOrigin = $allowed_origins;
 // or a wildcard
 // $server->allowedOrigin = '*';
 
-$current_origin = get_origin();
-error_log("=== CORS DEBUG ===");
-error_log("Request method: " . $_SERVER['REQUEST_METHOD']);
-error_log("Current origin: " . $current_origin);
-error_log("Allowed origins: " . json_encode($allowed_origins));
-error_log("Origin in allowed list: " . (in_array($current_origin, $allowed_origins) ? 'YES' : 'NO'));
-
-if( in_array($current_origin, $allowed_origins) ){
-    header("Access-Control-Allow-Origin: " . $current_origin);
+if( in_array(get_origin(), $allowed_origins) ){
+    header("Access-Control-Allow-Origin: " . get_origin());
 }
 
-// Handle OPTIONS preflight requests
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    error_log("OPTIONS request detected");
-    if (in_array($current_origin, $allowed_origins)) {
-        error_log("Setting CORS headers for allowed origin");
-        header("Access-Control-Allow-Origin: " . $current_origin);
-        header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-        header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
-        header("Access-Control-Max-Age: 86400"); // Cache preflight for 24 hours
-    } else {
-        error_log("Origin NOT in allowed list!");
-    }
-    http_response_code(200);
-    exit(0);
-}
+
 
 $server->addClass('StripeController');
 $server->addClass('LobController');
