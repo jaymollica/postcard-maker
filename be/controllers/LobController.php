@@ -11,12 +11,9 @@ class LobController
      */
     public function lob_handler($data)
     {
-        error_log(var_export('data', true));
-        error_log(var_export($data, true));
-        
         if (!verify_nonce($data->nonce, $_ENV['NONCE_ACTION'])) {
-            http_response_code(500);
-            return array('result' => 'error', 'message' => 'Bad nonce');
+            http_response_code(403);
+            return array('result' => 'error', 'message' => 'Invalid request');
         }
 
         $mp = Mixpanel::getInstance($_ENV['MIXPANEL_KEY']);
@@ -50,9 +47,11 @@ class LobController
                     }
                 }
                 
-                // Check if the payment intent has succeeded or if it's a free/cheap promo item
-                // Items under $0.50 bypass payment since Stripe requires minimum $0.50
-                if ($payment_intent->status === 'succeeded' || $actual_cost < 50) {
+                // Check if the payment intent has succeeded
+                // OR if it's a free/cheap promo item (only allow free if promo was applied)
+                $is_free_with_promo = ($actual_cost < 50 && isset($data->promo->active) && $data->promo->active);
+
+                if ($payment_intent->status === 'succeeded' || $is_free_with_promo) {
                     
                     $merge_variables = $data->merge_variables ?? (object) array();
 
@@ -134,13 +133,6 @@ class LobController
 
                         $result = json_decode($response->getBody(), true);
 
-                        // Debug: Log the full Lob response to see what fields are available
-                        error_log('=== LOB API RESPONSE ===');
-                        error_log('Full Lob result: ' . json_encode($result));
-                        error_log('Tracking URL field: ' . ($result['tracking_url'] ?? 'NOT FOUND'));
-                        error_log('URL field: ' . ($result['url'] ?? 'NOT FOUND'));
-                        error_log('=== END LOB RESPONSE ===');
-    
                         try {
                             require_once __DIR__ . '/../services/MailchimpService.php';
                             $mailchimpService = new MailchimpService();
@@ -171,13 +163,6 @@ class LobController
                             $result['payment_intent_id'] = $payment_intent_id;
                             $result['original_cost'] = $default_cost; // Pass domain-specific original cost
 
-                            error_log('=== EMAIL DATA DEBUG ===');
-                            error_log('$data->to: ' . json_encode($data->to ?? 'MISSING'));
-                            error_log('$data->merge_variables: ' . json_encode($data->merge_variables ?? 'MISSING'));
-                            error_log('$result from Lob: ' . json_encode($result));
-                            error_log('$actual_cost: ' . $actual_cost);
-                            error_log('$default_cost (domain-specific): ' . $default_cost);
-                            
                             $emailResult = $mailchimpService->sendPostcardReceipt(
                                 $postcardData,
                                 $senderData,
@@ -189,10 +174,11 @@ class LobController
                                 $result['email_receipt'] = $emailResult;
                             }
                         } catch (Exception $e) {
-                            //Log error but don't crash the response
-                            error_log('Email sending failed: ' . $e->getMessage());
-                            error_log('Email error trace: ' . $e->getTraceAsString());
-                            //Don't add anything to $result so the main response stays intact
+                            // Log error but don't crash the response
+                            if ($_ENV['APP_ENV'] === 'development') {
+                                error_log('Email sending failed: ' . $e->getMessage());
+                            }
+                            // Don't add anything to $result so the main response stays intact
                         }
 
                         // send mixpanel on success
@@ -205,21 +191,28 @@ class LobController
                         
                         return $result;
                     } catch (RequestException $e) {
-                        return array('result' => 'error', 'message' => $e->getResponse()->getBody());
+                        if ($_ENV['APP_ENV'] === 'development') {
+                            error_log('Lob API error: ' . $e->getResponse()->getBody());
+                        }
+                        return array('result' => 'error', 'message' => 'Failed to create postcard');
                     }
 
                 } else {
-                    return array('result' => 'error', 'message' => 'Error... Payment intent status: ' . $payment_intent->status);
+                    if ($_ENV['APP_ENV'] === 'development') {
+                        error_log('Payment not completed: ' . $payment_intent->status);
+                    }
+                    return array('result' => 'error', 'message' => 'Payment verification failed');
                 }
 
             } catch (\Stripe\Exception\ApiErrorException $e) {
-                // Handle errors when retrieving the payment intent
-                return array('result' => 'error', 'message' => 'Error retrieving payment intent: ' . $e->getMessage());
+                if ($_ENV['APP_ENV'] === 'development') {
+                    error_log('Stripe API error: ' . $e->getMessage());
+                }
+                return array('result' => 'error', 'message' => 'Payment verification failed');
             }
         }
         else{
-            // Handle errors when retrieving the payment intent
-            return array('result' => 'error', 'message' => 'Stop screwing around!');
+            return array('result' => 'error', 'message' => 'Invalid request');
         }
     }
 }

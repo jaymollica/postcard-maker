@@ -11,13 +11,13 @@ class StripeController
      */
     public function promo_handler($data){
       if( !verify_nonce($data->nonce, $_ENV['NONCE_ACTION']) ){
-        http_response_code(500);
-        return ['result' => 'error', 'message' => 'Bad nonce'];
+        http_response_code(403);
+        return ['result' => 'error', 'message' => 'Invalid request'];
       }
 
       if( empty($data->promo) ){
-        http_response_code(500);
-        return ['result' => 'error', 'message' => 'Must include promo in request'];
+        http_response_code(400);
+        return ['result' => 'error', 'message' => 'Promo code is required'];
       }
 
       $stripe = new \Stripe\StripeClient($_ENV['STRIPE_API_KEY']);
@@ -44,7 +44,7 @@ class StripeController
             $coupon_id = $promo->promotion->coupon ?? null;
 
             if (!$coupon_id) {
-              return ['result' => 'error', 'message' => 'Coupon ID not found in promotion code'];
+              return ['result' => 'error', 'message' => 'Invalid promo code'];
             }
 
             $coupon = $stripe->coupons->retrieve($coupon_id);
@@ -81,8 +81,11 @@ class StripeController
         }
 
       } catch (\Exception $ex) {
-        http_response_code($ex->getCode());
-        return ['result' => 'error', 'message' => $ex->getMessage()];
+        if ($_ENV['APP_ENV'] === 'development') {
+          error_log('Promo handler error: ' . $ex->getMessage());
+        }
+        http_response_code(500);
+        return ['result' => 'error', 'message' => 'Unable to process promo code'];
       }
     }
 
@@ -92,10 +95,10 @@ class StripeController
      * @url POST /stripe
      */
     public function pay_handler($data){
-      
+
       if( !verify_nonce($data->nonce, $_ENV['NONCE_ACTION']) ){
-        http_response_code(500);
-        return ['result' => 'error', 'message' => 'Bad nonce'];
+        http_response_code(403);
+        return ['result' => 'error', 'message' => 'Invalid request'];
       }
       
       try {
@@ -120,7 +123,7 @@ class StripeController
               $coupon_id = $promo->promotion->coupon ?? null;
 
               if (!$coupon_id) {
-                throw new \Exception('Coupon ID not found in promotion code');
+                throw new \Exception('Invalid promotion code');
               }
 
               $coupon = $stripe->coupons->retrieve($coupon_id);
@@ -165,8 +168,10 @@ class StripeController
           return $paymentIntent;
 
         } catch (\Throwable $th) {
-          //throw $th;
-          return ['result' => 'error', 'message' => $th->getMessage()];
+          if ($_ENV['APP_ENV'] === 'development') {
+            error_log('Payment handler error: ' . $th->getMessage());
+          }
+          return ['result' => 'error', 'message' => 'Unable to process payment'];
         }
     }
 }

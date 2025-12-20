@@ -84,9 +84,7 @@ require './controllers/NonceController.php';
 require './controllers/EmailController.php';
 require './controllers/CostController.php';
 
-error_log("BE LOADING");
-
-$server = new \Jacwright\RestServer\RestServer('debug');
+$server = new \Jacwright\RestServer\RestServer('production');
 
 // domains & templates for CORS & Lob routing purposes
 global $domain_template_map;

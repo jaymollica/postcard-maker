@@ -11,8 +11,8 @@ class CostController
      */
     public function cost_handler($data){
         if( !verify_nonce($data->nonce, $_ENV['NONCE_ACTION']) ){
-            http_response_code(500);
-            return ['result' => 'error', 'message' => 'Bad nonce'];
+            http_response_code(403);
+            return ['result' => 'error', 'message' => 'Invalid request'];
         }
 
         try {
@@ -29,8 +29,11 @@ class CostController
                 'country' => $country
             ];
         } catch (\Exception $ex) {
+            if ($_ENV['APP_ENV'] === 'development') {
+                error_log('Cost handler error: ' . $ex->getMessage());
+            }
             http_response_code(500);
-            return ['result' => 'error', 'message' => $ex->getMessage()];
+            return ['result' => 'error', 'message' => 'Unable to retrieve pricing'];
         }
     }
 }

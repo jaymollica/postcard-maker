@@ -1,5 +1,4 @@
 <?php
-error_log("AWS Controller loaded");
 use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
 class AWSController{
@@ -11,11 +10,9 @@ class AWSController{
     public function img_handler($data){
         
         if( !verify_nonce($data->nonce, $_ENV['NONCE_ACTION']) ){
-            http_response_code(500);
-            return ['result' => 'error', 'message' => 'Bad nonce'];
+            http_response_code(403);
+            return ['result' => 'error', 'message' => 'Invalid request'];
         }
-
-        error_log(print_r($data,true));
 
         $dataUrl = $data->imageData;
 
@@ -54,10 +51,12 @@ class AWSController{
             // Return the result to the client
             return ['result' => 'success', 'url' => $result['ObjectURL']];
         } catch (AwsException $e) {
-            // Log the error and return a response
-            error_log($e->getMessage());
+            // Log the error in development only
+            if ($_ENV['APP_ENV'] === 'development') {
+                error_log('AWS S3 Error: ' . $e->getMessage());
+            }
             http_response_code(500);
-            return ['result' => 'error', 'message' => 'Failed to upload image to S3'];
+            return ['result' => 'error', 'message' => 'Failed to upload image'];
         } finally {
             // Close and delete the temporary file
             fclose($tempFile);
