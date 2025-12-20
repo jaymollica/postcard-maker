@@ -94,6 +94,10 @@ $domain_template_map_string = file_get_contents('./.domain-template-map.json');
 $domain_template_map = json_decode($domain_template_map_string);
 $allowed_origins = array_column($domain_template_map, 'url');
 
+// Add the frontend domain itself as an allowed origin
+$allowed_origins[] = 'https://mail.sweetpost.art';
+$allowed_origins[] = 'http://localhost:8888'; // Local frontend
+
 $server->useCors = true;
 // $server->allowedOrigin = 'http://example.com';
 // or use array of multiple origins
