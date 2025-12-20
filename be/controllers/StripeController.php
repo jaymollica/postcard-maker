@@ -108,6 +108,9 @@ class StripeController
 
           $stripe = new \Stripe\StripeClient($_ENV['STRIPE_API_KEY']);
 
+          $promo_code = null;
+          $coupon_code = null;
+
           if( !empty($data->promoCodeId) ){
 
             $promo = $stripe->promotionCodes->retrieve($data->promoCodeId);
@@ -132,16 +135,32 @@ class StripeController
               if( $new_cost < 0 ){
                   $new_cost = 0;
               }
+
+              // Store promo info for metadata
+              $promo_code = $data->promoCodeId;
+              $coupon_code = $promo->code ?? '';
             }
           }
 
           // Create a PaymentIntent with amount and currency
           // Note: Stripe allows $0 payment intents for tracking purposes
-          $paymentIntent = $stripe->paymentIntents->create([
+          $paymentIntentParams = [
             'amount' => $new_cost,
             'currency' => 'usd',
             'payment_method_types' => ['card'],
-          ]);
+          ];
+
+          // Add metadata to track promo code usage
+          if( $promo_code ){
+            $paymentIntentParams['metadata'] = [
+              'promotion_code_id' => $promo_code,
+              'coupon_code' => $coupon_code,
+              'original_amount' => $default_cost,
+              'discounted_amount' => $new_cost,
+            ];
+          }
+
+          $paymentIntent = $stripe->paymentIntents->create($paymentIntentParams);
 
           return $paymentIntent;
 
