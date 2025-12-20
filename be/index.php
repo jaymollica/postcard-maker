@@ -105,7 +105,17 @@ if( in_array(get_origin(), $allowed_origins) ){
     header("Access-Control-Allow-Origin: " . get_origin());
 }
 
-
+// Handle OPTIONS preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    if (in_array(get_origin(), $allowed_origins)) {
+        header("Access-Control-Allow-Origin: " . get_origin());
+        header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+        header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+        header("Access-Control-Max-Age: 86400"); // Cache preflight for 24 hours
+    }
+    http_response_code(200);
+    exit(0);
+}
 
 $server->addClass('StripeController');
 $server->addClass('LobController');
