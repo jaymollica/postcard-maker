@@ -21,7 +21,7 @@ function Footer() {
     }}>
       <div style={{ maxWidth: '680px', margin: '0 auto', padding: '0 20px' }}>
         <a 
-          href="https://www.sweetpost.art/privacy" 
+          href="https://olliemail.net/privacy"
           style={{
             color: '#000',
             textDecoration: 'none',
@@ -35,7 +35,7 @@ function Footer() {
         </a>
         <span style={{ color: '#ddd' }}>|</span>
         <a 
-          href="https://www.sweetpost.art/terms" 
+          href="https://olliemail.net/terms"
           style={{
             color: '#000',
             textDecoration: 'none',

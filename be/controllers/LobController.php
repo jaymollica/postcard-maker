@@ -87,7 +87,7 @@ class LobController
                     }
 
                     if (!property_exists($merge_variables, 'footerUrl') || empty($merge_variables->footerUrl)) {
-                        $merge_variables->footerUrl = 'Make your own at www.sweetpost.art';
+                        $merge_variables->footerUrl = 'Make your own at olliemail.net';
                     }
 
                     // Default the QR code to the originating artist site URL so
@@ -95,7 +95,7 @@ class LobController
                     // postcard. Artists can still override with their own
                     // qrCodeUrl in the Lobby() optionalParams if they want.
                     if (!property_exists($merge_variables, 'qrCodeUrl') || empty($merge_variables->qrCodeUrl)) {
-                        $merge_variables->qrCodeUrl = $data->artistUrl ?? 'https://www.sweetpost.art';
+                        $merge_variables->qrCodeUrl = $data->artistUrl ?? 'https://olliemail.net';
                     }
 
                     // Country name for printing on the postcard. Lob's auto-

@@ -110,7 +110,7 @@ The default Lob templates render these merge variables. Pass them via the embed 
 **Footer / branding** (backend supplies defaults if not passed)
 - `footerHeader` *(default: "About This Postcard")*
 - `footerMessage` *(default: "This postcard features artwork from a public domain collection.")*
-- `footerUrl` *(default: "Make your own at www.sweetpost.art")*
+- `footerUrl` *(default: "Make your own at olliemail.net")*
 - `qrCodeUrl` *(default: the artist site URL, so recipients can scan to visit the project)*
 
 **Address**
