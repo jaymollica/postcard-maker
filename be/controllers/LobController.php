@@ -54,22 +54,48 @@ class LobController
                     
                     $merge_variables = $data->merge_variables ?? (object) array();
 
+                    // Map legacy artwork-prefixed variable names to their
+                    // presentation-neutral equivalents (and vice versa) so old
+                    // artist integrations + old Lob templates keep working
+                    // alongside new ones. The foreach below dual-emits both
+                    // names to Lob, so templates can reference either.
+                    $variable_aliases = array(
+                        'artworkTitle'    => 'title',
+                        'artworkArtist'   => 'attribution',
+                        'artworkYear'     => 'date',
+                        'artworkMuseum'   => 'source',
+                        'artworkImageURL' => 'imageURL',
+                    );
+                    foreach ($variable_aliases as $old => $new) {
+                        $has_old = property_exists($merge_variables, $old) && !empty($merge_variables->$old);
+                        $has_new = property_exists($merge_variables, $new) && !empty($merge_variables->$new);
+                        if ($has_old && !$has_new) {
+                            $merge_variables->$new = $merge_variables->$old;
+                        } elseif ($has_new && !$has_old) {
+                            $merge_variables->$old = $merge_variables->$new;
+                        }
+                    }
+
                     // Check merge_variables for properties, not $data directly
                     // Set default values for footer variables if not provided
                     if (!property_exists($merge_variables, 'footerHeader') || empty($merge_variables->footerHeader)) {
                         $merge_variables->footerHeader = 'About This Postcard';
                     }
-                    
+
                     if (!property_exists($merge_variables, 'footerMessage') || empty($merge_variables->footerMessage)) {
                         $merge_variables->footerMessage = 'This postcard features artwork from a public domain collection.';
                     }
-                    
+
                     if (!property_exists($merge_variables, 'footerUrl') || empty($merge_variables->footerUrl)) {
                         $merge_variables->footerUrl = 'Make your own at www.sweetpost.art';
                     }
 
+                    // Default the QR code to the originating artist site URL so
+                    // recipients can scan to visit the project that made the
+                    // postcard. Artists can still override with their own
+                    // qrCodeUrl in the Lobby() optionalParams if they want.
                     if (!property_exists($merge_variables, 'qrCodeUrl') || empty($merge_variables->qrCodeUrl)) {
-                        $merge_variables->qrCodeUrl = 'https://www.sweetpost.art';
+                        $merge_variables->qrCodeUrl = $data->artistUrl ?? 'https://www.sweetpost.art';
                     }
 
                     // Country name for printing on the postcard. Lob's auto-

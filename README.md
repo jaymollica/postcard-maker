@@ -97,12 +97,12 @@ Also confirm Lob's live environment has the correct front/back templates, and th
 ## Template Merge Variables
 The default Lob templates render these merge variables. Pass them via the embed lib's `optionalParams` — each key/value becomes a merge variable that Lob substitutes into `{{variableName}}` placeholders in the template. Variables marked *(auto)* are filled in by the backend, so artists don't need to pass them.
 
-**Artwork**
-- `artworkTitle`
-- `artworkArtist`
-- `artworkYear`
-- `artworkMuseum`
-- `artworkImageURL` *(auto — set from the canvas upload)*
+**Subject**
+- `title`
+- `attribution`
+- `date`
+- `source`
+- `imageURL` *(auto — set from the canvas upload)*
 
 **Message**
 - `userMessage` — text the buyer wants on the postcard
@@ -111,11 +111,10 @@ The default Lob templates render these merge variables. Pass them via the embed 
 - `footerHeader` *(default: "About This Postcard")*
 - `footerMessage` *(default: "This postcard features artwork from a public domain collection.")*
 - `footerUrl` *(default: "Make your own at www.sweetpost.art")*
-- `qrCodeUrl` *(default: `https://www.sweetpost.art`)*
+- `qrCodeUrl` *(default: the artist site URL, so recipients can scan to visit the project)*
 
 **Address**
 - `recipientCountryLine` *(auto — derived from the destination country)* — renders the country line on international postcards. Lob's auto-renderer omits it, so the back template includes `{{#recipientCountryLine}}{{recipientCountryLine}}{{/recipientCountryLine}}` to print it manually. Empty string for US so the line collapses on domestic mail.
 
-## TODO
-
-- **Generalize merge variable names.** The current artwork-prefixed variables (`artworkTitle`, `artworkArtist`, `artworkYear`, `artworkMuseum`, `artworkImageURL`) pin this system to art-gallery semantics, but the underlying capability is "send a postcard with arbitrary front/back content." Rename to presentation-neutral terms — proposed mapping: `artworkTitle` → `title`, `artworkArtist` → `attribution`, `artworkYear` → `date`, `artworkMuseum` → `source`, `artworkImageURL` → `imageURL`. Doable without breaking existing artist integrations: backend can alias old → new and forward both names to Lob during a transition window, so old templates and old artist sites keep working while new ones use the cleaner names. Phase out the old keys later once no Lob template references them.
+### Legacy variable names
+Older integrations passed artwork-prefixed names: `artworkTitle`, `artworkArtist`, `artworkYear`, `artworkMuseum`, `artworkImageURL`. The backend continues to accept these and aliases them to the presentation-neutral names above (and vice versa), then dual-emits both to Lob — so existing artist sites and older Lob templates keep working without changes. New integrations should use the new names.
