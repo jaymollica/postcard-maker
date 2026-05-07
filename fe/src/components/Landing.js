@@ -61,7 +61,7 @@ export default function Landing() {
         </p>
         <pre className="landing-code">{EMBED_EXAMPLE}</pre>
         <p className="description">
-          Domains must be allowlisted before they can use the service. Full integration docs and the source for this project are on{' '}
+          Domains must be allowlisted before they can use the service. As part of allowlisting, the artist (or maker, or developer) sets the per-postcard price &mdash; with separate values for US and international orders &mdash; so you choose what your audience pays. Full integration docs and the source for this project are on{' '}
           <a className="backlink" href="https://github.com/jaymollica/postcard-maker" target="_blank" rel="noreferrer">GitHub</a>.
         </p>
       </div>
