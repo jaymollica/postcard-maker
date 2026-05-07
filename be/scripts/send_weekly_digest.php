@@ -301,17 +301,18 @@ function generate_summary_with_claude(Client $client, string $apiKey, string $do
         $facts .= "Gross revenue: \$" . number_format($stats['revenue_cents'] / 100, 2) . "\n";
     }
 
-    $system = "You are writing a weekly analytics digest for an artist who runs a generative-art "
-            . "project and uses olliemail to ship physical postcards of their artwork. Write 3-4 short "
-            . "paragraphs of plain text addressed directly to the artist (\"you\", \"your visitors\"). "
-            . "Tone: warm, concise, encouraging without being saccharine. If the numbers are tiny, "
-            . "acknowledge that without spinning. Don't use exclamation points more than once. End with "
-            . "a single short sentence inviting them to reply to support@olliemail.net with questions. "
-            . "Output ONLY the email body. No subject line, no signature.";
+    $system = "You are writing a weekly analytics summary for an artist who uses olliemail to ship "
+            . "physical postcards of their generative artwork. Write ONE short paragraph (2-4 sentences) "
+            . "addressed directly to the artist (\"you\", \"your visitors\"). Surface the single most "
+            . "interesting signal from the data and skip the rest -- a stats table is rendered separately "
+            . "below your text, so do NOT recite numbers. Tone: warm, low-key, no marketing copy or hype. "
+            . "If activity is tiny, just acknowledge it without spinning. No exclamation points. End with "
+            . "one short sentence pointing them to support@olliemail.net with questions. Output ONLY the "
+            . "email body. No subject line, no signature, no greeting.";
 
     $payload = [
         'model'      => 'claude-haiku-4-5-20251001',
-        'max_tokens' => 800,
+        'max_tokens' => 250,
         'system'     => $system,
         'messages'   => [
             ['role' => 'user', 'content' => "Stats:\n\n$facts"],
