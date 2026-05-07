@@ -4,6 +4,7 @@ import { AddressForm, verify } from '@lob/react-address-autocomplete'
 import { lob_publishable_api_key_live } from './../config.js';
 
 import { ButtonLabelVerify, ButtonLabelVerifying, ButtonLabelVerified } from './ButtonLabels';
+import { track } from './../analytics.js';
 
 export default function Form(props){
 
@@ -35,6 +36,7 @@ export default function Form(props){
 				console.log('Verification Results', verificationResult)
 				if( verificationResult.valid_address && verificationResult.deliverability !== 'undeliverable' ){
 					setAddressVerified(true);
+					track('address_verified', { country: country });
 					// Lob's verify can fold the apt/suite into primary_line and
 					// return an empty secondary_line. Fall back to what the user
 					// typed so line2 reflects the original input.
@@ -76,6 +78,7 @@ export default function Form(props){
 			// International address - skip Lob verification and use address as-is
 			setVerifying(false);
 			setAddressVerified(true);
+			track('address_verified', { country: country });
 			setBillingDetails({
 				line1: address.primaryLine || address.address1 || '',
 				line2: address.secondaryLine || address.address2 || '',

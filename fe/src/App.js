@@ -5,6 +5,7 @@ import Form from './components/form.js';
 import Stripe from './components/stripe.js';
 import Landing from './components/Landing.js';
 import Tracking from './components/Tracking.js';
+import { track } from './analytics.js';
 
 // Footer component with privacy policy and terms links
 function Footer() {
@@ -134,6 +135,15 @@ function App() {
     }
 
   }, [nonce, isMainPage, isLanding, urlSearchParams]);
+
+  // Funnel: top-of-funnel event when a visitor lands on the postcard maker
+  // (i.e. arrived from an artist site with an imgUrl). Distinct from the
+  // landing-page hit Umami records as a regular pageview.
+  useEffect(() => {
+    if (isMainPage && !isLanding) {
+      track('postcard_started');
+    }
+  }, [isMainPage, isLanding]);
 
   if( isTracking ){
     return (

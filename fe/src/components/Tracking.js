@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Tracking.css';
+import { track } from './../analytics.js';
 
 // Lob's tracking_event types map roughly onto these display labels.
 const EVENT_LABELS = {
@@ -40,6 +41,7 @@ export default function Tracking({ postcardId }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    track('tracking_viewed', { postcard_id: postcardId });
     let cancelled = false;
     fetch(process.env.REACT_APP_BACKEND_URL + '/track', {
       method: 'POST',

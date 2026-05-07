@@ -10,6 +10,7 @@ import {
 } from '@stripe/react-stripe-js';
 
 import { ButtonLabelVerify, ButtonLabelVerifying, ButtonLabelVerified } from './ButtonLabels';
+import { track } from './../analytics.js';
 
 
 const CheckoutForm = (props) => {
@@ -196,6 +197,14 @@ const CheckoutForm = (props) => {
       
       if( lobResponseDecoded.url ){
         setMessageWithType(`Payment successful! You'll receive an email receipt shortly at ${emailToSend}. <a href="${lobResponseDecoded.url}" target="_blank" rel="noopener noreferrer">Preview your postcard here</a>. Please allow 10-14 business days for delivery.`, 'success');
+        track('purchase_completed', {
+          cost: lobResponseDecoded.cost ?? cost,
+          original_cost: lobResponseDecoded.original_cost,
+          country: billingDetails.country || 'US',
+          promo_used: !!(promoCode && promoCode.code),
+          promo_code: (promoCode && promoCode.code) || null,
+          postcard_id: lobResponseDecoded.id,
+        });
       }
     
     } catch (error) {
@@ -379,10 +388,17 @@ const CheckoutForm = (props) => {
         } else if (promoResponseDecoded.coupon.amount_off !== null) {
           newCost = defaultCost - promoResponseDecoded.coupon.amount_off;
         }
-        
+
         newCost = Math.max(0, newCost); // Ensure cost doesn't go below 0
 
         setCost(newCost);
+
+        track('promo_applied', {
+          promo_code: promoResponseDecoded.code,
+          original_cost: defaultCost,
+          discounted_cost: newCost,
+          discount: defaultCost - newCost,
+        });
         // The existing PaymentIntent's amount + metadata were already updated
         // by /promo above (see StripeController::promo_handler). No need to
         // create a second PI -- the original client_secret is still valid for
@@ -433,6 +449,12 @@ const CheckoutForm = (props) => {
 
     setIsLoading(true);
     setMessageWithType(''); // Clear any existing messages
+
+    track('payment_attempted', {
+      cost: cost,
+      country: billingDetails.country || 'US',
+      promo_used: !!(promoCode && promoCode.code),
+    });
 
     // if the cost is 0 then no need to use stripe
     let bypassStripe = false;
