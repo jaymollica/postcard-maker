@@ -15,11 +15,17 @@ declare(strict_types=1);
  *   4. Wraps the response in an HTML email and sends via Mandrill.
  *
  * Setup -- add to be/.env on the server:
- *   UMAMI_API_KEY=<generate at analytics.olliemail.net / Profile / API Keys>
- *   ANTHROPIC_API_KEY=<sk-ant-...>
+ *   UMAMI_USERNAME=<your Umami admin username, default 'admin'>
+ *   UMAMI_PASSWORD=<your Umami admin password>
  *   UMAMI_WEBSITE_ID=0ffd408b-d119-4243-aa03-0eb8f9a557de
  *   UMAMI_BASE_URL=https://analytics.olliemail.net/api
+ *   ANTHROPIC_API_KEY=<sk-ant-...>
  *   DIGEST_DRY_RUN_RECIPIENT=jaymollica@gmail.com   # optional
+ *
+ * Note: Umami 3.x removed the per-user API-key UI. Self-host auth
+ * is now via username+password -> JWT (POST /api/auth/login). The
+ * script logs in once at start, then uses the returned token as
+ * Bearer for the data calls.
  *
  * Setup -- per artist in .domain-template-map.json:
  *   { "domain": "sweetpost.art", ..., "digest_email": "artist@example.com" }
@@ -51,12 +57,13 @@ use GuzzleHttp\Exception\RequestException;
 // -----------------------------------------------------------------------
 
 $umamiBase     = rtrim($_ENV['UMAMI_BASE_URL'] ?? 'https://analytics.olliemail.net/api', '/');
-$umamiKey      = $_ENV['UMAMI_API_KEY'] ?? null;
+$umamiUser     = $_ENV['UMAMI_USERNAME'] ?? null;
+$umamiPass     = $_ENV['UMAMI_PASSWORD'] ?? null;
 $umamiSiteId   = $_ENV['UMAMI_WEBSITE_ID'] ?? null;
 $anthropicKey  = $_ENV['ANTHROPIC_API_KEY'] ?? null;
 $dryRunTo      = $_ENV['DIGEST_DRY_RUN_RECIPIENT'] ?? null;
 
-foreach (['UMAMI_API_KEY', 'UMAMI_WEBSITE_ID', 'ANTHROPIC_API_KEY'] as $required) {
+foreach (['UMAMI_USERNAME', 'UMAMI_PASSWORD', 'UMAMI_WEBSITE_ID', 'ANTHROPIC_API_KEY'] as $required) {
     if (empty($_ENV[$required])) {
         fwrite(STDERR, "Missing $required in be/.env -- aborting.\n");
         exit(1);
@@ -80,6 +87,12 @@ if (!$map) {
 }
 
 $client = new Client(['timeout' => 30]);
+
+// -----------------------------------------------------------------------
+// Log in to Umami (3.x dropped UI API keys; auth is now JWT via login)
+// -----------------------------------------------------------------------
+
+$umamiKey = umami_login($client, $umamiBase, $umamiUser, $umamiPass);
 
 // -----------------------------------------------------------------------
 // Pull events from Umami once, aggregate per-domain in PHP
@@ -155,6 +168,25 @@ exit(0);
 // -----------------------------------------------------------------------
 // Helpers
 // -----------------------------------------------------------------------
+
+/**
+ * Log in to Umami self-host and return the JWT to use as Bearer.
+ */
+function umami_login(Client $client, string $base, string $username, string $password): string {
+    try {
+        $resp = $client->post("$base/auth/login", [
+            'headers' => ['Accept' => 'application/json', 'Content-Type' => 'application/json'],
+            'body'    => json_encode(['username' => $username, 'password' => $password]),
+        ]);
+    } catch (RequestException $e) {
+        $body = $e->hasResponse() ? (string) $e->getResponse()->getBody() : '';
+        throw new RuntimeException("Umami login failed: " . $e->getMessage() . " " . substr($body, 0, 200));
+    }
+    $data = json_decode((string) $resp->getBody(), true);
+    $token = $data['token'] ?? null;
+    if (!$token) throw new RuntimeException("Umami login response missing token: " . json_encode($data));
+    return $token;
+}
 
 /**
  * Pull events of one name from Umami's /event-data endpoint, with paging.
