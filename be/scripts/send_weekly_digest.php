@@ -107,15 +107,15 @@ $EVENTS_OF_INTEREST = [
     'purchase_completed',
 ];
 
-$eventsByDomain = [];   // [domain => [event_name => [event_data, ...]]]
-
+// Umami v3's /event-data/events endpoint returns property histograms
+// (one row per {event, property, value} with a total count) -- NOT raw
+// event rows. So we pull each event's histograms once, then look up
+// per-domain counts via the referring_domain property.
+$aggregates = [];   // [event_name => ['by_property' => [prop => [value => count]]]]
 foreach ($EVENTS_OF_INTEREST as $eventName) {
-    $rows = umami_event_data($client, $umamiBase, $umamiKey, $umamiSiteId, $startTs, $endTs, $eventName);
-    foreach ($rows as $row) {
-        $domain = $row['referring_domain'] ?? null;
-        if (!$domain) continue;
-        $eventsByDomain[$domain][$eventName][] = $row;
-    }
+    $aggregates[$eventName] = umami_event_aggregates(
+        $client, $umamiBase, $umamiKey, $umamiSiteId, $startTs, $endTs, $eventName
+    );
 }
 
 // -----------------------------------------------------------------------
@@ -133,8 +133,7 @@ foreach ($map as $entry) {
     if ($onlyDomain && $domain !== $onlyDomain) { $skipped++; continue; }
     if (str_contains($domain, 'localhost')) { $skipped++; continue; }
 
-    $events = $eventsByDomain[$domain] ?? [];
-    $stats = aggregate_stats($events);
+    $stats = build_domain_stats($aggregates, $domain);
 
     if ($stats['postcard_started'] === 0 && $stats['purchase_completed'] === 0) {
         echo "[$domain] no activity -- skipping\n";
@@ -189,76 +188,79 @@ function umami_login(Client $client, string $base, string $username, string $pas
 }
 
 /**
- * Pull events of one name from Umami's /event-data endpoint, with paging.
- * Returns a flat array of event_data rows (associative).
+ * Pull aggregated property histograms for one event name from Umami v3.
+ * Returns ['by_property' => [propertyName => [propertyValue => count, ...]]].
+ *
+ * Umami v3's /event-data/events endpoint pre-aggregates: each row is
+ * {eventName, propertyName, propertyValue, total} -- so we fold the rows
+ * into a 2-level map for easy lookups.
  */
-function umami_event_data(Client $client, string $base, string $key, string $siteId, int $startTs, int $endTs, string $eventName): array {
+function umami_event_aggregates(Client $client, string $base, string $key, string $siteId, int $startTs, int $endTs, string $eventName): array {
     $url = "$base/websites/$siteId/event-data/events";
-    $rows = [];
-    $page = 1;
-    while (true) {
-        try {
-            $resp = $client->get($url, [
-                'headers' => ['Authorization' => "Bearer $key", 'Accept' => 'application/json'],
-                'query' => [
-                    'startAt' => $startTs * 1000,
-                    'endAt'   => $endTs * 1000,
-                    'event'   => $eventName,
-                    'pageSize'=> 1000,
-                    'page'    => $page,
-                ],
-            ]);
-        } catch (RequestException $e) {
-            $body = $e->hasResponse() ? (string) $e->getResponse()->getBody() : '';
-            throw new RuntimeException("Umami $eventName fetch failed: " . $e->getMessage() . " " . substr($body, 0, 200));
-        }
-        $data = json_decode((string) $resp->getBody(), true);
-        $batch = $data['data'] ?? $data ?? [];
-        if (empty($batch)) break;
-        // Each row is event_data; reshape to {key: value} per row.
-        $byEvent = [];
-        foreach ($batch as $kv) {
-            $eid = $kv['eventId'] ?? null;
-            if (!$eid) continue;
-            $byEvent[$eid][$kv['eventKey']] = $kv['stringValue'] ?? $kv['numberValue'] ?? $kv['dateValue'] ?? null;
-        }
-        foreach ($byEvent as $row) $rows[] = $row;
-        if (count($batch) < 1000) break;   // last page
-        $page++;
-        if ($page > 50) break;             // safety stop
+    try {
+        $resp = $client->get($url, [
+            'headers' => ['Authorization' => "Bearer $key", 'Accept' => 'application/json'],
+            'query' => [
+                'startAt' => $startTs * 1000,
+                'endAt'   => $endTs * 1000,
+                'event'   => $eventName,
+            ],
+        ]);
+    } catch (RequestException $e) {
+        $body = $e->hasResponse() ? (string) $e->getResponse()->getBody() : '';
+        throw new RuntimeException("Umami $eventName fetch failed: " . $e->getMessage() . " " . substr($body, 0, 200));
     }
-    return $rows;
+    $rows = json_decode((string) $resp->getBody(), true) ?: [];
+
+    $byProperty = [];
+    foreach ($rows as $row) {
+        $prop = $row['propertyName'] ?? null;
+        $value = $row['propertyValue'] ?? null;
+        $count = (int) ($row['total'] ?? 0);
+        if (!$prop || $value === null) continue;
+        $byProperty[$prop][$value] = ($byProperty[$prop][$value] ?? 0) + $count;
+    }
+    return ['by_property' => $byProperty];
 }
 
-function aggregate_stats(array $events): array {
-    $cnt = function ($name) use ($events) { return count($events[$name] ?? []); };
+/**
+ * Build per-domain stats from the cross-event histograms.
+ *
+ * Note: Umami's pre-aggregated histograms are independent per property,
+ * so cross-property correlation isn't available -- "purchases from this
+ * domain in this country" can't be computed from these rows alone. For
+ * single-domain reporting (i.e. the digest we send to artist X is the
+ * only domain reflected in their slice of activity), the global slice
+ * IS the per-domain slice and the numbers are accurate. With multiple
+ * artists running concurrently, country/promo/cost stats become
+ * approximations -- worth revisiting if we add more domains.
+ */
+function build_domain_stats(array $aggregates, string $domain): array {
+    $count = function (string $eventName) use ($aggregates, $domain) {
+        return (int) ($aggregates[$eventName]['by_property']['referring_domain'][$domain] ?? 0);
+    };
 
-    $started   = $cnt('postcard_started');
-    $verified  = $cnt('address_verified');
-    $promo     = $cnt('promo_applied');
-    $attempted = $cnt('payment_attempted');
-    $completed = $cnt('purchase_completed');
+    $started   = $count('postcard_started');
+    $verified  = $count('address_verified');
+    $promo     = $count('promo_applied');
+    $attempted = $count('payment_attempted');
+    $completed = $count('purchase_completed');
 
-    // Top promo code
-    $promoCounts = [];
-    foreach ($events['promo_applied'] ?? [] as $row) {
-        $code = $row['promo_code'] ?? null;
-        if ($code) $promoCounts[$code] = ($promoCounts[$code] ?? 0) + 1;
-    }
+    $purchaseProps = $aggregates['purchase_completed']['by_property'] ?? [];
+
+    // Top promo code (across all completed purchases in the window)
+    $promoCounts = $purchaseProps['promo_code'] ?? [];
     arsort($promoCounts);
-    $topPromo = key($promoCounts);
+    $topPromo = $promoCounts ? array_key_first($promoCounts) : null;
 
     // Country split on completed
-    $countryCounts = [];
-    foreach ($events['purchase_completed'] ?? [] as $row) {
-        $c = $row['country'] ?? 'unknown';
-        $countryCounts[$c] = ($countryCounts[$c] ?? 0) + 1;
-    }
+    $countryCounts = $purchaseProps['country'] ?? [];
 
-    // Total revenue (sum of cost in cents)
+    // Revenue: sum of cost values weighted by their counts. Umami stores
+    // numeric properties as decimal strings ("300.0000"); cost is in cents.
     $revenueCents = 0;
-    foreach ($events['purchase_completed'] ?? [] as $row) {
-        $revenueCents += (int) ($row['cost'] ?? 0);
+    foreach ($purchaseProps['cost'] ?? [] as $valueStr => $rowCount) {
+        $revenueCents += (int) round((float) $valueStr) * $rowCount;
     }
 
     return [
