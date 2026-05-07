@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Olliemail Partner Pricing Calculator</title>
+<style>
+  :root {
+    --bg: #fafaf7;
+    --card: #ffffff;
+    --ink: #1a1a1a;
+    --muted: #6b6b6b;
+    --line: #e7e5df;
+    --accent: #d94e4e;
+    --good: #2f7a4f;
+    --bad: #b03a3a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 48px 24px 64px; }
+  h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .lede { color: var(--muted); margin: 0 0 32px; font-size: 16px; }
+  .controls {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+  }
+  .controls label { font-size: 14px; color: var(--muted); }
+  .controls select {
+    font: inherit;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 14px 12px;
+    text-align: right;
+    border-bottom: 1px solid var(--line);
+    font-variant-numeric: tabular-nums;
+  }
+  th {
+    background: #f3f1ec;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  th:first-child, td:first-child { text-align: left; }
+  tr:last-child td { border-bottom: none; }
+  .size-label { font-weight: 600; }
+  .destination { color: var(--muted); font-size: 13px; }
+  input[type="number"] {
+    font: inherit;
+    width: 90px;
+    padding: 6px 8px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  input[type="number"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .profit.positive { color: var(--good); font-weight: 600; }
+  .profit.negative { color: var(--bad); font-weight: 600; }
+  .margin { color: var(--muted); font-size: 13px; }
+  .notes {
+    margin-top: 24px;
+    padding: 16px 20px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .notes p { margin: 0 0 8px; }
+  .notes p:last-child { margin: 0; }
+  .notes strong { color: var(--ink); }
+  @media (max-width: 600px) {
+    .wrap { padding: 24px 16px; }
+    th, td { padding: 10px 8px; font-size: 13px; }
+    input[type="number"] { width: 70px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Olliemail Pricing Calculator</h1>
+  <p class="lede">Enter a retail price for each postcard option to see the cost breakdown and margin. Useful for partners pricing their own white-labeled Olliemail integration.</p>
+
+  <div class="controls">
+    <label for="plan">Lob plan tier:</label>
+    <select id="plan">
+      <option value="developer">Developer</option>
+      <option value="startup">Startup</option>
+      <option value="growth">Growth</option>
+    </select>
+    <label style="margin-left:auto;"><input type="checkbox" id="intl-card"> Assume foreign-issued card (Stripe +1.5%)</label>
+  </div>
+
+  <table id="calc">
+    <thead>
+      <tr>
+        <th>Postcard</th>
+        <th>Retail (USD)</th>
+        <th>Lob cost</th>
+        <th>Stripe fee</th>
+        <th>Total cost</th>
+        <th>Profit</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- rows injected by JS -->
+    </tbody>
+  </table>
+
+  <div class="notes">
+    <p><strong>Lob pricing</strong> includes print + postage (USPS rates as of July 2025). All sizes shown use First Class postage. Lob does not currently offer a 5x7 size; 6x9 and 6x11 are larger alternatives.</p>
+    <p><strong>International shipping</strong> is only available for 4x6 postcards through Lob. International orders also automatically include a US return address (required by Lob).</p>
+    <p><strong>Stripe fee</strong> is calculated as 2.9% + $0.30 for US-issued cards. Toggle "foreign-issued card" to add Stripe's 1.5% international card fee. International postcards default to assuming a foreign card.</p>
+  </div>
+</div>
+
+<script>
+  // Lob per-piece pricing (USD), First Class, includes print + postage
+  // Source: help.lob.com pricing docs (post-2025-07-13 USPS rates)
+  const LOB_PRICING = {
+    developer: { '4x6': 0.872, '6x9': 0.993, '6x11': 1.259, '4x6_intl': 1.440 },
+    startup:   { '4x6': 0.612, '6x9': 0.673, '6x11': 0.919, '4x6_intl': 1.379 },
+    growth:    { '4x6': 0.582, '6x9': 0.623, '6x11': 0.879, '4x6_intl': 1.379 }
+  };
+
+  const STRIPE_PCT = 0.029;
+  const STRIPE_FIXED = 0.30;
+  const STRIPE_INTL_PCT = 0.015;
+
+  const ROWS = [
+    { id: '4x6_us',    label: '4x6',  destination: 'US',            lobKey: '4x6',      defaultPrice: 3.00, forceIntlCard: false },
+    { id: '4x6_intl',  label: '4x6',  destination: 'International', lobKey: '4x6_intl', defaultPrice: 5.00, forceIntlCard: true  },
+    { id: '6x9_us',    label: '6x9',  destination: 'US',            lobKey: '6x9',      defaultPrice: 4.00, forceIntlCard: false },
+    { id: '6x11_us',   label: '6x11', destination: 'US',            lobKey: '6x11',     defaultPrice: 5.00, forceIntlCard: false }
+  ];
+
+  const fmt = (n) => '$' + n.toFixed(2);
+
+  function stripeFee(retail, useIntl) {
+    const pct = STRIPE_PCT + (useIntl ? STRIPE_INTL_PCT : 0);
+    return retail * pct + STRIPE_FIXED;
+  }
+
+  function render() {
+    const plan = document.getElementById('plan').value;
+    const globalIntl = document.getElementById('intl-card').checked;
+    const tbody = document.querySelector('#calc tbody');
+    tbody.innerHTML = '';
+
+    for (const row of ROWS) {
+      const lobCost = LOB_PRICING[plan][row.lobKey];
+      const priceInput = document.querySelector(`input[data-id="${row.id}"]`);
+      const retail = priceInput ? parseFloat(priceInput.value) || 0 : row.defaultPrice;
+      const useIntlCard = row.forceIntlCard || globalIntl;
+      const sFee = stripeFee(retail, useIntlCard);
+      const total = lobCost + sFee;
+      const profit = retail - total;
+      const margin = retail > 0 ? (profit / retail) * 100 : 0;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div class="size-label">${row.label}</div>
+          <div class="destination">${row.destination}</div>
+        </td>
+        <td><input type="number" min="0" step="0.25" data-id="${row.id}" value="${retail.toFixed(2)}"></td>
+        <td>${fmt(lobCost)}</td>
+        <td>${fmt(sFee)}</td>
+        <td>${fmt(total)}</td>
+        <td>
+          <div class="profit ${profit >= 0 ? 'positive' : 'negative'}">${profit >= 0 ? '' : '−'}${fmt(Math.abs(profit))}</div>
+          <div class="margin">${margin.toFixed(1)}% margin</div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    // Re-attach input listeners after re-render
+    document.querySelectorAll('input[data-id]').forEach(input => {
+      input.addEventListener('input', render);
+    });
+  }
+
+  // Seed initial rows so inputs exist on first render
+  function seed() {
+    const tbody = document.querySelector('#calc tbody');
+    for (const row of ROWS) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td colspan="6"><input type="number" data-id="${row.id}" value="${row.defaultPrice.toFixed(2)}" hidden></td>`;
+      tbody.appendChild(tr);
+    }
+  }
+
+  seed();
+  render();
+  document.getElementById('plan').addEventListener('change', render);
+  document.getElementById('intl-card').addEventListener('change', render);
+</script>
+</body>
+</html>
