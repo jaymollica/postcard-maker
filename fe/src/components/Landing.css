@@ -115,3 +115,50 @@
   font-size: 14px;
   color: #666;
 }
+
+.landing-print-diagram {
+  margin: 20px 0 8px;
+  text-align: center;
+}
+
+.landing-print-diagram svg {
+  width: 100%;
+  max-width: 520px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.landing-print-caption {
+  font-size: 13px;
+  color: #666;
+  margin: 6px 0 0;
+}
+
+.landing-print-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  font-weight: 300;
+  margin: 8px 0 20px;
+}
+
+.landing-print-table th,
+.landing-print-table td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.landing-print-table th {
+  font-weight: 500;
+  color: #555;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.landing-print-table td:nth-child(n+2) {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  font-size: 14px;
+}
