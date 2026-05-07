@@ -100,3 +100,4 @@ jobs:
         sshpass -p $SSH_PASSWORD rsync -avz -e 'ssh -o StrictHostKeyChecking=no' --progress be/vendor deploy@167.99.58.222:/var/www/html/be/
         sshpass -p $SSH_PASSWORD rsync -avz -e 'ssh -o StrictHostKeyChecking=no' --progress be/controllers deploy@167.99.58.222:/var/www/html/be/
         sshpass -p $SSH_PASSWORD rsync -avz -e 'ssh -o StrictHostKeyChecking=no' --progress be/services deploy@167.99.58.222:/var/www/html/be/
+        sshpass -p $SSH_PASSWORD rsync -avz -e 'ssh -o StrictHostKeyChecking=no' --progress be/scripts deploy@167.99.58.222:/var/www/html/be/
