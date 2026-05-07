@@ -170,57 +170,58 @@
     return retail * pct + STRIPE_FIXED;
   }
 
+  function buildRows() {
+    const tbody = document.querySelector('#calc tbody');
+    tbody.innerHTML = '';
+    for (const row of ROWS) {
+      const tr = document.createElement('tr');
+      tr.dataset.id = row.id;
+      tr.innerHTML = `
+        <td>
+          <div class="size-label">${row.label}</div>
+          <div class="destination">${row.destination}</div>
+        </td>
+        <td><input type="number" min="0" step="0.25" data-id="${row.id}" value="${row.defaultPrice.toFixed(2)}"></td>
+        <td class="cell-lob"></td>
+        <td class="cell-stripe"></td>
+        <td class="cell-total"></td>
+        <td>
+          <div class="profit"></div>
+          <div class="margin"></div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      tr.querySelector('input').addEventListener('input', render);
+    }
+  }
+
   function render() {
     const plan = document.getElementById('plan').value;
     const globalIntl = document.getElementById('intl-card').checked;
-    const tbody = document.querySelector('#calc tbody');
-    tbody.innerHTML = '';
 
     for (const row of ROWS) {
+      const tr = document.querySelector(`tr[data-id="${row.id}"]`);
+      if (!tr) continue;
       const lobCost = LOB_PRICING[plan][row.lobKey];
-      const priceInput = document.querySelector(`input[data-id="${row.id}"]`);
-      const retail = priceInput ? parseFloat(priceInput.value) || 0 : row.defaultPrice;
+      const retail = parseFloat(tr.querySelector('input').value) || 0;
       const useIntlCard = row.forceIntlCard || globalIntl;
       const sFee = stripeFee(retail, useIntlCard);
       const total = lobCost + sFee;
       const profit = retail - total;
       const margin = retail > 0 ? (profit / retail) * 100 : 0;
 
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>
-          <div class="size-label">${row.label}</div>
-          <div class="destination">${row.destination}</div>
-        </td>
-        <td><input type="number" min="0" step="0.25" data-id="${row.id}" value="${retail.toFixed(2)}"></td>
-        <td>${fmt(lobCost)}</td>
-        <td>${fmt(sFee)}</td>
-        <td>${fmt(total)}</td>
-        <td>
-          <div class="profit ${profit >= 0 ? 'positive' : 'negative'}">${profit >= 0 ? '' : '−'}${fmt(Math.abs(profit))}</div>
-          <div class="margin">${margin.toFixed(1)}% margin</div>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    }
-
-    // Re-attach input listeners after re-render
-    document.querySelectorAll('input[data-id]').forEach(input => {
-      input.addEventListener('input', render);
-    });
-  }
-
-  // Seed initial rows so inputs exist on first render
-  function seed() {
-    const tbody = document.querySelector('#calc tbody');
-    for (const row of ROWS) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td colspan="6"><input type="number" data-id="${row.id}" value="${row.defaultPrice.toFixed(2)}" hidden></td>`;
-      tbody.appendChild(tr);
+      tr.querySelector('.cell-lob').textContent = fmt(lobCost);
+      tr.querySelector('.cell-stripe').textContent = fmt(sFee);
+      tr.querySelector('.cell-total').textContent = fmt(total);
+      const profitEl = tr.querySelector('.profit');
+      profitEl.textContent = (profit >= 0 ? '' : '−') + fmt(Math.abs(profit));
+      profitEl.classList.toggle('positive', profit >= 0);
+      profitEl.classList.toggle('negative', profit < 0);
+      tr.querySelector('.margin').textContent = margin.toFixed(1) + '% margin';
     }
   }
 
-  seed();
+  buildRows();
   render();
   document.getElementById('plan').addEventListener('change', render);
   document.getElementById('intl-card').addEventListener('change', render);
