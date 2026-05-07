@@ -36,9 +36,28 @@ class AWSController{
             ],
         ]);
 
-        // Upload the image to S3
+        // Upload the image to S3.
+        // If the request's Referer matches a whitelisted artist domain, prefix
+        // the S3 key with that domain's slug. The slug rides along inside the
+        // returned URL through the redirect → frontend → /lob flow, so
+        // LobController can later recover a server-verified embed origin
+        // without trusting the request body.
         $bucket = $_ENV['AWS_BUCKET'] ?? 'cc0-postcard-bucket';
-        $key = bin2hex(random_bytes(16)) . '.jpg';
+        $referer_origin = origin_from_url($_SERVER['HTTP_REFERER'] ?? '');
+        $matched_domain = null;
+        if ($referer_origin) {
+            global $domain_template_map;
+            foreach ($domain_template_map as $entry) {
+                if ($entry->url === $referer_origin) {
+                    $matched_domain = $entry->domain;
+                    break;
+                }
+            }
+        }
+        $random = bin2hex(random_bytes(16));
+        $key = $matched_domain
+            ? slug_for_domain($matched_domain) . '--' . $random . '.jpg'
+            : $random . '.jpg';
 
         try {
             $result = $s3->putObject([

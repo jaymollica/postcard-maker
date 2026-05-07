@@ -35,15 +35,31 @@ export default function Form(props){
 				console.log('Verification Results', verificationResult)
 				if( verificationResult.valid_address && verificationResult.deliverability !== 'undeliverable' ){
 					setAddressVerified(true);
+					// Lob's verify can fold the apt/suite into primary_line and
+					// return an empty secondary_line. Fall back to what the user
+					// typed so line2 reflects the original input.
+					const line2 = verificationResult.secondary_line || address.secondary_line || '';
 					setBillingDetails({
 						line1: verificationResult.primary_line,
-						line2: verificationResult.secondary_line,
+						line2: line2,
 						city: verificationResult.components.city,
 						state: verificationResult.components.state,
 						postal_code: verificationResult.components.zip_code,
 						name: recipientName,
 						country: country
 					});
+					// AddressForm wipes its own secondary_line input after verify
+					// (uncontrolled input, no `value` prop exposed). Push the value
+					// back into both the DOM and React's internal state via the
+					// native setter trick so what's shown matches what's sent.
+					if( line2 ){
+						const input = document.getElementById('secondary_line');
+						if( input ){
+							const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+							setter.call(input, line2);
+							input.dispatchEvent(new Event('input', { bubbles: true }));
+						}
+					}
 				}
 				else{
 					// Address verification failed - button will return to normal state

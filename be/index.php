@@ -53,6 +53,79 @@ function verify_nonce($nonce, $action, $lifetime = 86400) {
 // global $default_cost;
 // $default_cost = 80;
 
+function get_domain_for_url($artist_url) {
+    global $domain_template_map;
+    if (empty($artist_url)) {
+        return null;
+    }
+    $idx = array_search($artist_url, array_column($domain_template_map, 'url'));
+    if ($idx !== false) {
+        return $domain_template_map[$idx]->domain;
+    }
+    return parse_url($artist_url, PHP_URL_HOST);
+}
+
+// Map an ISO-3166 alpha-2 country code (what the frontend dropdown sends) to
+// the uppercase country name we want printed on the postcard. Returns '' for
+// US (so the country line collapses on domestic mail) and the uppercased input
+// for unknown codes so issues are visible rather than silent.
+function country_name_for_code($code) {
+    static $names = array(
+        'US' => '',
+        'CA' => 'CANADA',
+        'GB' => 'UNITED KINGDOM',
+        'AU' => 'AUSTRALIA',
+        'FR' => 'FRANCE',
+        'DE' => 'GERMANY',
+        'IT' => 'ITALY',
+        'ES' => 'SPAIN',
+        'JP' => 'JAPAN',
+        'MX' => 'MEXICO',
+    );
+    $code = strtoupper(trim((string) $code));
+    if (array_key_exists($code, $names)) {
+        return $names[$code];
+    }
+    return $code;
+}
+
+function slug_for_domain($domain) {
+    return strtolower(preg_replace('/[^a-z0-9]+/i', '-', $domain));
+}
+
+function origin_from_url($url) {
+    if (empty($url)) return null;
+    $parts = parse_url($url);
+    if (!$parts || !isset($parts['scheme'], $parts['host'])) return null;
+    $origin = $parts['scheme'] . '://' . $parts['host'];
+    if (isset($parts['port'])) {
+        $is_default = ($parts['scheme'] === 'https' && $parts['port'] == 443)
+            || ($parts['scheme'] === 'http' && $parts['port'] == 80);
+        if (!$is_default) {
+            $origin .= ':' . $parts['port'];
+        }
+    }
+    return $origin;
+}
+
+// Reverse the slug embedded in an S3 image URL by AWSController back to the
+// canonical domain it was uploaded from. Returns null if no whitelist slug
+// matches the key prefix.
+function get_domain_from_imgurl($img_url) {
+    global $domain_template_map;
+    if (empty($img_url)) return null;
+    $path = parse_url($img_url, PHP_URL_PATH);
+    if (!$path) return null;
+    $key = ltrim($path, '/');
+    foreach ($domain_template_map as $entry) {
+        $slug = slug_for_domain($entry->domain);
+        if (strpos($key, $slug . '--') === 0) {
+            return $entry->domain;
+        }
+    }
+    return null;
+}
+
 function get_cost_for_domain($domain_url, $country = 'US') {
     global $domain_template_map;
 

@@ -30,26 +30,25 @@ class LobController
                 // Get country from address data
                 $country = $data->to->country ?? 'US';
 
-                // Get domain-specific cost based on country
-                $default_cost = get_cost_for_domain($data->artistUrl, $country);
-                $actual_cost = $default_cost; // Default cost
-                
-                if( isset($data->promo->active) && $data->promo->active ){
-                    if( $data->promo->coupon->percent_off !== null ){
-                      $actual_cost = $default_cost - ($default_cost * ($data->promo->coupon->percent_off / 100));
-                    }
-                    else if( $data->promo->coupon->amount_off !== null ){
-                      $actual_cost = $default_cost - $data->promo->coupon->amount_off;
-                    }
-        
-                    if( $actual_cost < 0 ){
-                      $actual_cost = 0;
-                    }
-                }
-                
-                // Check if the payment intent has succeeded
-                // OR if it's a free/cheap promo item (only allow free if promo was applied)
-                $is_free_with_promo = ($actual_cost < 50 && isset($data->promo->active) && $data->promo->active);
+                // Source of truth is the PaymentIntent, not the request body.
+                // promo_handler writes promotion_code_id + original_amount +
+                // discounted_amount into metadata only after server-side Stripe
+                // validation, so trusting metadata here is safe; trusting
+                // $data->promo is not.
+                $promo_applied = !empty($payment_intent->metadata['promotion_code_id']);
+                // Stripe won't let us update PI amount below $0.50, so for
+                // fully-discounted orders the true charge lives in metadata.
+                $actual_cost = $promo_applied && isset($payment_intent->metadata['discounted_amount'])
+                    ? (int) $payment_intent->metadata['discounted_amount']
+                    : (int) $payment_intent->amount;
+                $default_cost = isset($payment_intent->metadata['original_amount'])
+                    ? (int) $payment_intent->metadata['original_amount']
+                    : get_cost_for_domain($data->artistUrl, $country);
+
+                // Stripe rejects sub-$0.50 charges, so a fully-discounted order
+                // can never reach status=succeeded. Allow shipping in that case
+                // ONLY if a real promo was server-validated on the PaymentIntent.
+                $is_free_with_promo = ($actual_cost < 50 && $promo_applied);
 
                 if ($payment_intent->status === 'succeeded' || $is_free_with_promo) {
                     
@@ -73,6 +72,13 @@ class LobController
                         $merge_variables->qrCodeUrl = 'https://www.sweetpost.art';
                     }
 
+                    // Country name for printing on the postcard. Lob's auto-
+                    // rendered address block omits the country line for
+                    // international mail, so expose the country as a merge
+                    // variable the back template can render manually. Empty
+                    // string for US so the line collapses on domestic mail.
+                    $merge_variables->recipientCountryLine = country_name_for_code($country);
+
                     // Replace YOUR_API_KEY with your actual API key.
                     $apiKey = $_ENV['LOB_API_KEY'];
 
@@ -86,6 +92,29 @@ class LobController
                     $domain_vars = $domain_template_map[array_search($data->artistUrl, array_column($domain_template_map, 'url'))];
                     $front = $domain_vars->front_template ?? $_ENV['LOB_FRONT_TEMPLATE_DEFAULT'];
                     $back = $domain_vars->back_template ?? $_ENV['LOB_BACK_TEMPLATE_DEFAULT'];
+
+                    // Tag the PaymentIntent with the originating artist domain
+                    // so orders are separable per-domain in the Stripe dashboard.
+                    // Prefer the slug encoded into the imgUrl by AWSController
+                    // (Referer-verified at upload time); fall back to the
+                    // unverified $data->artistUrl for legacy uploads. Non-fatal.
+                    $imgurl = $data->merge_variables->artworkImageURL ?? '';
+                    $verified_domain = get_domain_from_imgurl($imgurl);
+                    $referring_domain = $verified_domain
+                        ?? ($domain_vars->domain ?? get_domain_for_url($data->artistUrl));
+                    try {
+                        $stripe->paymentIntents->update($payment_intent_id, array(
+                            'description' => 'SweetPost postcard via ' . $referring_domain,
+                            'metadata' => array(
+                                'referring_domain' => $referring_domain,
+                                'referring_domain_verified' => $verified_domain ? 'true' : 'false',
+                            ),
+                        ));
+                    } catch (\Stripe\Exception\ApiErrorException $e) {
+                        if ($_ENV['APP_ENV'] === 'development') {
+                            error_log('PI domain-tag failed: ' . $e->getMessage());
+                        }
+                    }
 
                     $recipient = array(
                         "name"     =>  $data->to->name ?? '',
@@ -102,6 +131,7 @@ class LobController
                             'description' => 'Example Postcard',
                             'to[name]' => $recipient['name'],
                             'to[address_line1]' => $recipient['address_line1'],
+                            'to[address_line2]' => $recipient['address_line2'],
                             'to[address_city]' => $recipient['address_city'],
                             'to[address_state]' => $recipient['address_state'],
                             'to[address_zip]' => $recipient['address_zip'],

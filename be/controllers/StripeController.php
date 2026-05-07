@@ -60,14 +60,24 @@ class StripeController
               $new_cost = 0;
             }
 
-            // Update payment intent with new cost with promo applied
-            // Note: Stripe requires minimum $0.50, so skip update for amounts below that
+            // Persist the promo on the PaymentIntent's metadata so LobController
+            // can server-trust the discount when shipping a sub-$0.50 (free) order.
+            // Stripe rejects amount updates below $0.50, so in that case we leave
+            // the existing amount in place and rely on metadata.discounted_amount.
+            // Artist domain tagging is intentionally NOT done here -- LobController
+            // sets it from a Referer-verified S3 key slug, which is trustworthy.
+            $update_params = array(
+              'metadata' => array(
+                'promotion_code_id' => $promo->id,
+                'coupon_code' => $promo->code ?? '',
+                'original_amount' => $default_cost,
+                'discounted_amount' => $new_cost,
+              ),
+            );
             if( $new_cost >= 50 ){
-              $stripe->paymentIntents->update($data->paymentIntent->id, array(
-                'amount' => $new_cost,
-              ));
+              $update_params['amount'] = $new_cost;
             }
-            // For free or very cheap items, keep original payment intent but don't charge it
+            $stripe->paymentIntents->update($data->paymentIntent->id, $update_params);
           }
 
           // Return promo with coupon data attached for frontend compatibility
