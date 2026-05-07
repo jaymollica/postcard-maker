@@ -2,10 +2,16 @@
 Allows for a generative artist to connect their project to a service that sends a physical postcard of an artwork. Artwork must be on a canvas and domain must be allowlisted. Uses Lob & Stripe to send the postcard and capture payment info, respectively.
 
 ## Dev
-To start a local dev server, run the startdev.sh script like `sh startdev.sh`. You will need the .env file for the backend, the .env.development and .env.production files for the front end and the .domain-template-map.json file for things to work as expected. Deployment is controlled by Github Actions. See the .github/workflows folder. If you want to change the code on the remote server, deploy commits to the main branch since Github is the source of truth.
+To start a local dev server, run `zsh startdev.sh` (the script uses zsh-style arrays, so plain `sh` won't work on systems where `/bin/sh` is dash). You'll need:
+
+- `be/.env` for the backend (Stripe + Lob keys, Mailchimp, AWS, etc.)
+- `fe/.env.development` for the frontend dev build
+- `be/.domain-template-map.json` for domain → template/cost config
+
+Deployment is controlled by GitHub Actions — see `.github/workflows/main.yml`. The repo is the source of truth: commits to `main` auto-build and rsync to the production server. Don't edit code directly on the server; the next deploy will overwrite it.
 
 ## Artist
-For use in your generative art project, you will need to include the embed script and have two elements: a canvas (which contains the art), and a button (when clicked will open a new window to collect name, address and payment info in order to complete the user flow). There's support for additional properties in the Lobby function's config. These get translated to merge variables for the Lob API to injest. When the button has been clicked a class named `disable` will be applied to the element and the listener for the click event will be removed. This will help prevent subsequent requests and allow the artist to conditionally style their button. Example below:
+For use in your generative art project, you will need to include the embed script and have two elements: a canvas (which contains the art), and a button (when clicked will open a new window to collect name, address and payment info in order to complete the user flow). There's support for additional properties in the `Lobby` function's config (any extra keys beyond `button`/`canvas`). These get passed through as merge variables for the Lob template to ingest — see the [Template Merge Variables](#template-merge-variables) section below for what the default templates expect. When the button has been clicked a class named `disable` will be applied to the element and the listener for the click event will be removed. This will help prevent subsequent requests and allow the artist to conditionally style their button. Example below:
 
 
 
@@ -79,19 +85,33 @@ For use in your generative art project, you will need to include the embed scrip
 ```
 
 ## Going Live
-Promo codes are managed on Stripe. Make sure the ones you want to use are set in live environment not just the test environment. Super easy to change just follow their instructions and copy the config. Also replace the test keys in Settings > Security > Secrets and variables > Actions with their corresponding live keys and in the .env files on the server. Make sure Lob's live env has the correct templates and the .env & .domain-template-map.json files are updated with the corresponding template ids.
+Promo codes are managed in Stripe — make sure any you want available are set up in the live environment, not just test (Stripe's docs walk you through copying them over).
 
-## Default Template
-The default postcard template has a number of preset variables you can pass values to:
+When promoting from test to live, you need to update keys in two places:
 
-artworkTitle
-artworkArtist
-artworkYear
-artworkMuseum
-artworkObjectId
-artworkImageUrl
-userMessage
+1. **GitHub Actions** (Settings → Secrets and variables → Actions): replace test keys in repository **vars** (`REACT_APP_STRIPE_PUBLISHABLE_KEY`, etc.) with their live equivalents. These are baked into the FE bundle at build time.
+2. **Server `be/.env`**: replace `STRIPE_API_KEY`, `LOB_API_KEY`, etc. with their `sk_live_*` / `live_*` equivalents. These are read at runtime by the backend.
 
-footerTitle
-footerMessage
-footerUrl
+Also confirm Lob's live environment has the correct front/back templates, and that `be/.domain-template-map.json` on the server has the matching live `front_template`/`back_template` IDs for each artist domain.
+
+## Template Merge Variables
+The default Lob templates render these merge variables. Pass them via the embed lib's `optionalParams` — each key/value becomes a merge variable that Lob substitutes into `{{variableName}}` placeholders in the template. Variables marked *(auto)* are filled in by the backend, so artists don't need to pass them.
+
+**Artwork**
+- `artworkTitle`
+- `artworkArtist`
+- `artworkYear`
+- `artworkMuseum`
+- `artworkImageURL` *(auto — set from the canvas upload)*
+
+**Message**
+- `userMessage` — text the buyer wants on the postcard
+
+**Footer / branding** (backend supplies defaults if not passed)
+- `footerHeader` *(default: "About This Postcard")*
+- `footerMessage` *(default: "This postcard features artwork from a public domain collection.")*
+- `footerUrl` *(default: "Make your own at www.sweetpost.art")*
+- `qrCodeUrl` *(default: `https://www.sweetpost.art`)*
+
+**Address**
+- `recipientCountryLine` *(auto — derived from the destination country)* — renders the country line on international postcards. Lob's auto-renderer omits it, so the back template includes `{{#recipientCountryLine}}{{recipientCountryLine}}{{/recipientCountryLine}}` to print it manually. Empty string for US so the line collapses on domestic mail.
