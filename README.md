@@ -118,3 +118,9 @@ The default Lob templates render these merge variables. Pass them via the embed 
 
 ### Legacy variable names
 Older integrations passed artwork-prefixed names: `artworkTitle`, `artworkArtist`, `artworkYear`, `artworkMuseum`, `artworkImageURL`. The backend continues to accept these and aliases them to the presentation-neutral names above (and vice versa), then dual-emits both to Lob — so existing artist sites and older Lob templates keep working without changes. New integrations should use the new names.
+
+## TODO
+
+- **Per-domain promo codes.** Today any active Stripe promotion code works on any allowlisted artist domain — there's no scoping. Make promos per-domain so each artist controls availability of their own codes. Likely implementation: add a `metadata.allowed_domains` field on the Stripe promo (comma-separated list of domains, or `*` for any) and check it in `StripeController::promo_handler` against the request's `artistUrl` before applying. Trade-off: managing promos requires either Stripe-dashboard access for artists (cumbersome) or a UI in the admin panel below.
+
+- **Admin UI for the whitelist.** `be/.domain-template-map.json` is hand-edited on the server today. Build an authenticated admin form to add / edit / delete entries (URL, domain, `front_template`, `back_template`, `cost`, `cost_international`). Considerations: auth mechanism (basic auth, session, or token), atomic file writes to avoid races between concurrent edits, and optionally pulling Lob's templates list via their API to populate `front_template` / `back_template` as dropdowns rather than free-text. Could live at `/admin` on olliemail.net behind a single shared password, or split to its own subdomain.
