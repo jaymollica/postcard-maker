@@ -13,11 +13,4 @@ mixpanel.track('Page View', {
     'url' : urlSearchParams.get('artistUrl')
 });
 
-if( urlSearchParams.get('imgUrl') ){
-    root.render(
-        <App />
-    );
-}
-else{
-    root.render('This won\'t work without an image...')
-}
+root.render(<App />);
