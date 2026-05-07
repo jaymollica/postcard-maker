@@ -115,3 +115,7 @@ The default Lob templates render these merge variables. Pass them via the embed 
 
 **Address**
 - `recipientCountryLine` *(auto — derived from the destination country)* — renders the country line on international postcards. Lob's auto-renderer omits it, so the back template includes `{{#recipientCountryLine}}{{recipientCountryLine}}{{/recipientCountryLine}}` to print it manually. Empty string for US so the line collapses on domestic mail.
+
+## TODO
+
+- **Generalize merge variable names.** The current artwork-prefixed variables (`artworkTitle`, `artworkArtist`, `artworkYear`, `artworkMuseum`, `artworkImageURL`) pin this system to art-gallery semantics, but the underlying capability is "send a postcard with arbitrary front/back content." Consider renaming to presentation-neutral terms (e.g. `title`, `attribution`, `date`, `source`, `imageURL`) so the system can describe what's being *presented* without assuming the content is artwork. Note this is a breaking change for existing artist integrations and the Lob templates (`{{artworkTitle}}` etc.) — needs to be coordinated, not done in isolation.
