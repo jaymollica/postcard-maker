@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Form from './components/form.js';
 import Stripe from './components/stripe.js';
 import Landing from './components/Landing.js';
+import Tracking from './components/Tracking.js';
 
 // Footer component with privacy policy and terms links
 function Footer() {
@@ -64,7 +65,9 @@ function App() {
   const urlSearchParams = useMemo(() => new URLSearchParams(window.location.search), []);
   const isSuccessPage = urlSearchParams.get('success') === 'true';
   const isCancelPage = urlSearchParams.get('cancel') === 'true';
-  const isMainPage = !isSuccessPage && !isCancelPage;
+  const trackId = urlSearchParams.get('track');
+  const isTracking = !!trackId && !isSuccessPage && !isCancelPage;
+  const isMainPage = !isSuccessPage && !isCancelPage && !isTracking;
   const imgUrl = urlSearchParams.get('imgUrl');
   // Visitors who land on the domain directly (no imgUrl) get the marketing
   // landing page instead of a broken postcard preview.
@@ -131,6 +134,15 @@ function App() {
     }
 
   }, [nonce, isMainPage, isLanding, urlSearchParams]);
+
+  if( isTracking ){
+    return (
+      <>
+        <Tracking postcardId={trackId} />
+        <Footer />
+      </>
+    );
+  }
 
   if( isLanding ){
     return (

@@ -1,0 +1,138 @@
+.tracking {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 20px 40px 20px;
+  text-align: left;
+}
+
+.tracking h1 {
+  margin: 60px 0 24px 0;
+  font-size: 32px;
+  font-weight: 400;
+  color: #000;
+  text-align: left;
+  max-width: none;
+}
+
+.tracking h2 {
+  margin: 48px 0 16px 0;
+  font-size: 18px;
+  font-weight: 500;
+  color: #000;
+}
+
+.tracking code {
+  background: #f5f5f5;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 13px;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+.tracking-status {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 20px 24px;
+  margin: 24px 0;
+}
+
+.tracking-status-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.tracking-status-value {
+  font-size: 24px;
+  font-weight: 400;
+  color: #000;
+}
+
+.tracking-thumbnail {
+  margin: 24px 0;
+}
+
+.tracking-thumbnail img {
+  max-width: 320px;
+  width: 100%;
+  height: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.tracking-meta {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 16px;
+  margin: 24px 0;
+  font-size: 15px;
+  font-weight: 300;
+}
+
+.tracking-meta dt {
+  font-weight: 500;
+  color: #666;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  align-self: center;
+}
+
+.tracking-meta dd {
+  margin: 0;
+  color: #000;
+}
+
+.tracking-timeline {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0 0;
+}
+
+.tracking-timeline li {
+  border-left: 2px solid #e0e0e0;
+  padding: 8px 0 16px 16px;
+  position: relative;
+}
+
+.tracking-timeline li:first-child {
+  border-left-color: #000;
+}
+
+.tracking-timeline li::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: 14px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #000;
+}
+
+.tracking-timeline li:not(:first-child)::before {
+  border-color: #aaa;
+}
+
+.tracking-timeline-time {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 2px;
+}
+
+.tracking-timeline-name {
+  font-size: 16px;
+  font-weight: 400;
+  color: #000;
+}
+
+.tracking-timeline-desc,
+.tracking-timeline-loc {
+  font-size: 14px;
+  color: #666;
+  font-weight: 300;
+  margin-top: 2px;
+}

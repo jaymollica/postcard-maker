@@ -65,24 +65,13 @@ class MailchimpService {
         error_log('Payment Intent ID extracted: ' . $paymentIntentId);
         error_log('Postcard ID: ' . $postcardId);
         
-        // Build tracking URL - try multiple approaches
-        $trackingUrl = '#'; // Default fallback
-        
-        // First, try to use the tracking_url from Lob API if available
-        if (isset($lobData['tracking_url']) && !empty($lobData['tracking_url'])) {
-            $trackingUrl = $lobData['tracking_url'];
-            error_log('Using Lob provided tracking URL: ' . $trackingUrl);
-        } 
-        // If no tracking_url, try to construct one using the tracking_events URL pattern
-        else if (isset($lobData['tracking_events']) && !empty($postcardId) && $postcardId !== 'N/A') {
-            $trackingUrl = "https://dashboard.lob.com/#/postcards/{$postcardId}";
-            error_log('Constructed dashboard tracking URL: ' . $trackingUrl);
-        }
-        // Last resort - use a generic tracking page if postcard ID exists
-        else if (!empty($postcardId) && $postcardId !== 'N/A') {
-            $trackingUrl = "https://lob.com/resources/guides/tracking";
-            error_log('Using generic tracking guide URL: ' . $trackingUrl);
-        }
+        // Tracking URL points at our own /?track=<postcardId> route on the
+        // React frontend, which fetches from /track and shows progress.
+        // Falls back to '#' only when the postcard ID is missing.
+        $frontendUrl = $_ENV['FRONTEND_URL'] ?? 'https://mail.sweetpost.art';
+        $trackingUrl = (!empty($postcardId) && $postcardId !== 'N/A')
+            ? rtrim($frontendUrl, '/') . '/?track=' . urlencode($postcardId)
+            : '#';
         
 
 
@@ -103,6 +92,7 @@ class MailchimpService {
                 <p><strong>Estimated Delivery:</strong> " . $deliveryEstimate . "</p>
                 <div style='margin: 20px 0;'>
                     <a href='" . htmlspecialchars($lobData['url'] ?? '#') . "' style='display: inline-block; background: #0078d4; color: white; padding: 10px 20px; text-decoration: none; margin-right: 10px; border-radius: 4px;'>View Postcard PDF</a>
+                    <a href='" . htmlspecialchars($trackingUrl) . "' style='display: inline-block; background: #fff; color: #0078d4; border: 1px solid #0078d4; padding: 10px 20px; text-decoration: none; border-radius: 4px;'>Track your postcard</a>
                 </div>
                 <div style='margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666;'>
                     <p><strong>Need help?</strong></p>

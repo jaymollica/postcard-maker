@@ -156,6 +156,7 @@ require './controllers/AWSController.php';
 require './controllers/NonceController.php';
 require './controllers/EmailController.php';
 require './controllers/CostController.php';
+require './controllers/TrackingController.php';
 
 $server = new \Jacwright\RestServer\RestServer('production');
 
@@ -184,5 +185,6 @@ $server->addClass('AWSController');
 $server->addClass('NonceController');
 $server->addClass('EmailController');
 $server->addClass('CostController');
+$server->addClass('TrackingController');
 
 $server->handle();
