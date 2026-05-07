@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 // import Geo from './components/geo.js';
 import Form from './components/form.js';
 import Stripe from './components/stripe.js';
+import Landing from './components/Landing.js';
 
 // Footer component with privacy policy and terms links
 function Footer() {
@@ -64,7 +65,11 @@ function App() {
   const isSuccessPage = urlSearchParams.get('success') === 'true';
   const isCancelPage = urlSearchParams.get('cancel') === 'true';
   const isMainPage = !isSuccessPage && !isCancelPage;
-  
+  const imgUrl = urlSearchParams.get('imgUrl');
+  // Visitors who land on the domain directly (no imgUrl) get the marketing
+  // landing page instead of a broken postcard preview.
+  const isLanding = isMainPage && !imgUrl;
+
   useEffect(() => {
     const fetchSecret = () => {
       if( nonce.length === 0 ){
@@ -121,14 +126,21 @@ function App() {
       }
     };
 
-    if( isMainPage ){
+    if( isMainPage && !isLanding ){
       fetchSecret();
     }
-  
-  }, [nonce, isMainPage, urlSearchParams]);
-  
-  const imgUrl = urlSearchParams.get('imgUrl');
-  
+
+  }, [nonce, isMainPage, isLanding, urlSearchParams]);
+
+  if( isLanding ){
+    return (
+      <>
+        <Landing />
+        <Footer />
+      </>
+    );
+  }
+
   if( isMainPage ){
     return (
       <div className="App">

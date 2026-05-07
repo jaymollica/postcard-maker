@@ -1,0 +1,79 @@
+.landing {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 20px 40px 20px;
+  text-align: left;
+}
+
+.landing h1 {
+  margin: 60px 0 24px 0;
+  padding: 0;
+  font-size: 32px;
+  font-weight: 400;
+  color: #000;
+  text-align: left;
+  max-width: none;
+}
+
+.landing h2 {
+  margin: 48px 0 16px 0;
+  font-size: 20px;
+  font-weight: 500;
+  color: #000;
+}
+
+.landing-section {
+  margin-bottom: 32px;
+}
+
+.landing-section .description {
+  padding: 0;
+  margin: 0 0 16px 0;
+  font-size: 16px;
+}
+
+.landing code {
+  background: #f5f5f5;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 13px;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+.landing-steps {
+  padding-left: 20px;
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1.8;
+}
+
+.landing-steps li {
+  margin-bottom: 6px;
+}
+
+.landing-code {
+  background: #f5f5f5;
+  padding: 16px;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 13px;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  line-height: 1.5;
+  color: #000;
+  white-space: pre;
+}
+
+.landing-projects {
+  list-style: none;
+  padding: 0;
+  font-size: 16px;
+  font-weight: 300;
+}
+
+.landing-projects li {
+  margin-bottom: 12px;
+}
+
+.landing-project-desc {
+  color: #666;
+}
