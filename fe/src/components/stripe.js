@@ -383,32 +383,10 @@ const CheckoutForm = (props) => {
         newCost = Math.max(0, newCost); // Ensure cost doesn't go below 0
 
         setCost(newCost);
-
-        // Update payment intent with new cost
-        const stripeResponse = await fetch(process.env.REACT_APP_BACKEND_URL + "/stripe", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            'Access-Control-Allow-Origin': process.env.REACT_APP_FRONTEND_ORIGIN
-          },
-          body: JSON.stringify({
-            items: [{ id: "postcard-4x6" }],
-            nonce: promoBody.nonce,
-            cost: newCost,
-            promoCodeId: promoResponseDecoded.id,
-            artistUrl: artistUrl, // Include artistUrl for domain-specific processing
-            country: billingDetails.country || 'US' // Include country for pricing
-          }),
-          mode: 'cors',
-          credentials: 'same-origin',
-          cache: 'no-cache',
-          redirect: 'follow'
-        });
-
-        const stripeResponseDecoded = await stripeResponse.json();
-        if (stripeResponseDecoded.client_secret) {
-          setPaymentIntent(stripeResponseDecoded);
-        }
+        // The existing PaymentIntent's amount + metadata were already updated
+        // by /promo above (see StripeController::promo_handler). No need to
+        // create a second PI -- the original client_secret is still valid for
+        // confirmCardPayment, and /lob reads promo info from the PI's metadata.
       }
     } catch (error) {
       console.log(error);
@@ -675,7 +653,7 @@ const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 export default function Stripe(props) {
   if( props.addressVerified ){
     return (
-      <Elements stripe={stripePromise} options={{ clientSecret : props.elementsOptions.paymentIntent.clientSecret }}>
+      <Elements stripe={stripePromise} options={{ clientSecret : props.elementsOptions.paymentIntent.client_secret }}>
         <CheckoutForm 
           billingDetails={props.billingDetails} 
           paymentIntent={ props.elementsOptions.paymentIntent }
