@@ -7,11 +7,6 @@ const PROJECTS = [
     url: 'https://sweetpost.art',
     description: 'Generative postcards from public-domain art collections.',
   },
-  {
-    name: 'Dapper as Fuck',
-    url: 'https://dapperasfuck.com',
-    description: '',
-  },
 ];
 
 const EMBED_EXAMPLE = `<!-- Drop the embed script after your canvas + button -->
