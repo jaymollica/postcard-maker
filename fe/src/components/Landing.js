@@ -103,6 +103,40 @@ export default function Landing() {
           Any extra keys you pass to <code>Lobby()</code> beyond <code>button</code> and <code>canvas</code> become merge variables on the postcard. The default templates render the variables below — pass them to fill in the corresponding <code>{'{{variableName}}'}</code> placeholders. Variables marked <em>auto</em> are filled in automatically.
         </p>
 
+        <div className="pb-diagram">
+          <div className="pb-card" role="img" aria-label="Postcard back layout showing where each merge variable is placed">
+            <div className="pb-label">
+              <div className="pb-title"><code>{'{{title}}'}</code></div>
+              <div><code>{'{{attribution}}'}</code>, <code>{'{{date}}'}</code></div>
+              <small><code>{'{{source}}'}</code></small>
+            </div>
+
+            <div className="pb-message">
+              <code>{'{{userMessage}}'}</code>
+            </div>
+
+            <div className="pb-footer">
+              <div><code>{'{{footerHeader}}'}</code></div>
+              <small><code>{'{{footerMessage}}'}</code> <code>{'{{footerUrl}}'}</code></small>
+            </div>
+
+            <div className="pb-qr">
+              <div className="pb-qr-box" aria-hidden="true"></div>
+              <small><code>{'{{qrCodeUrl}}'}</code></small>
+            </div>
+
+            <div className="pb-inkfree">
+              <div className="pb-postage">postage</div>
+              <div className="pb-address">
+                Recipient address<br />
+                <em>auto-printed by Lob</em>
+              </div>
+              <div className="pb-country"><code>{'{{recipientCountryLine}}'}</code></div>
+            </div>
+          </div>
+          <p className="landing-print-caption">Back of the postcard · default template layout (4 × 6&quot; shown; other sizes use the same regions, scaled)</p>
+        </div>
+
         <h3 className="landing-subhead">About the subject</h3>
         <ul className="landing-vars">
           <li><code>title</code> &mdash; what's being presented</li>
