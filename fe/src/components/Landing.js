@@ -37,6 +37,7 @@ export default function Landing() {
     <div className="App landing">
       <div className="landing-section landing-hero">
         <h1>olliemail</h1>
+        <p className="landing-tagline">Enjoy getting mail again!</p>
         <p className="description">
           A drop-in service that lets any browser-based art project mail a physical 4&times;6&quot; postcard
           of an image rendered in a <code>&lt;canvas&gt;</code>. Visitors fill in a recipient address, pay,

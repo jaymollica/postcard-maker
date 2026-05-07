@@ -1,7 +1,12 @@
 {
-  "short_name": "Lobby",
-  "name": "Get your generated artwork sent to you on a physical postcard",
+  "short_name": "olliemail",
+  "name": "olliemail — Enjoy getting mail again!",
   "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
     {
       "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
@@ -20,6 +25,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#ffffff",
   "background_color": "#ffffff"
 }

@@ -6,13 +6,20 @@
 }
 
 .landing h1 {
-  margin: 60px 0 24px 0;
+  margin: 60px 0 8px 0;
   padding: 0;
   font-size: 32px;
   font-weight: 400;
   color: #000;
   text-align: left;
   max-width: none;
+}
+
+.landing-tagline {
+  font-size: 18px;
+  font-weight: 400;
+  color: #555;
+  margin: 0 0 24px 0;
 }
 
 .landing h2 {
