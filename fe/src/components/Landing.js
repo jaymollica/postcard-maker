@@ -59,10 +59,6 @@ export default function Landing() {
           We're always interested in adding new projects. If you'd like to bring olliemail to your site, drop a note to <a className="backlink" href="mailto:support@olliemail.net">support@olliemail.net</a>.
         </p>
       </div>
-
-      <footer className="site-footer">
-        &copy; {new Date().getFullYear()} Vague Media LLC <span className="site-footer-sep">·</span> <a href="/privacy">Privacy</a> <span className="site-footer-sep">·</span> <a href="/terms">Terms</a>
-      </footer>
     </div>
   );
 }

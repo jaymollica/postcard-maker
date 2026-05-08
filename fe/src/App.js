@@ -7,48 +7,26 @@ import Landing from './components/Landing.js';
 import Tracking from './components/Tracking.js';
 import { track } from './analytics.js';
 
-// Footer component with privacy policy and terms links
+// Sitewide footer: copyright + Privacy/Terms links. Used on landing,
+// checkout (main), success, cancel, and tracking views.
 function Footer() {
+  const linkStyle = { color: 'inherit', textDecoration: 'underline' };
+  const sepStyle = { color: '#ccc', margin: '0 4px' };
   return (
     <footer style={{
       marginTop: '60px',
-      paddingTop: '40px',
-      paddingBottom: '40px',
-      borderTop: '1px solid #e0e0e0',
+      padding: '24px 20px',
+      borderTop: '1px solid #eee',
       textAlign: 'center',
-      fontSize: '14px',
-      color: '#666',
-      fontWeight: 300
+      fontSize: '13px',
+      color: '#888',
+      fontWeight: 300,
     }}>
-      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '0 20px' }}>
-        <a 
-          href="https://olliemail.net/privacy"
-          style={{
-            color: '#000',
-            textDecoration: 'none',
-            margin: '0 15px',
-            fontWeight: 300
-          }}
-          onMouseOver={(e) => e.target.style.opacity = '0.6'}
-          onMouseOut={(e) => e.target.style.opacity = '1'}
-        >
-          Privacy Policy
-        </a>
-        <span style={{ color: '#ddd' }}>|</span>
-        <a 
-          href="https://olliemail.net/terms"
-          style={{
-            color: '#000',
-            textDecoration: 'none',
-            margin: '0 15px',
-            fontWeight: 300
-          }}
-          onMouseOver={(e) => e.target.style.opacity = '0.6'}
-          onMouseOut={(e) => e.target.style.opacity = '1'}
-        >
-          Terms of Service
-        </a>
-      </div>
+      &copy; {new Date().getFullYear()} Vague Media LLC{' '}
+      <span style={sepStyle}>·</span>{' '}
+      <a href="/privacy" style={linkStyle}>Privacy</a>{' '}
+      <span style={sepStyle}>·</span>{' '}
+      <a href="/terms" style={linkStyle}>Terms</a>
     </footer>
   );
 }
