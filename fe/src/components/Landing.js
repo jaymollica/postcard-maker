@@ -59,6 +59,9 @@ export default function Landing() {
         <p className="description">
           Domains must be allowlisted before they can use the service. As part of allowlisting, the artist (or maker, or developer) sets the per-postcard price &mdash; with separate values for US and international orders &mdash; so you choose what your audience pays.
         </p>
+        <p className="description">
+          Not sure where to start? The <a className="backlink" href="/integrate">integration assistant</a> walks you through it — describe your project and it'll generate a working snippet, especially handy when your canvas updates dynamically.
+        </p>
       </div>
 
       <div className="landing-section">

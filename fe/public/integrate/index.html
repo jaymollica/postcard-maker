@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://olliemail.net/integrate" />
+    <meta property="og:title" content="olliemail — Integration assistant" />
+    <meta property="og:description" content="Tell us about your project and we'll generate a working olliemail embed for you." />
+    <meta property="og:image" content="https://olliemail.net/logo512.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="olliemail — Integration assistant" />
+    <meta name="twitter:description" content="Tell us about your project and we'll generate a working olliemail embed for you." />
+    <meta name="twitter:image" content="https://olliemail.net/logo512.png" />
+    <title>olliemail — Integration assistant</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 0;
+            background: #fff;
+            color: #000;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-weight: 300;
+            line-height: 1.6;
+        }
+        .integrate-page {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 60px 20px 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .integrate-page h1 {
+            font-size: 32px;
+            font-weight: 400;
+            margin: 0 0 8px 0;
+        }
+        .integrate-page .tagline {
+            font-size: 18px;
+            color: #555;
+            margin: 0 0 24px 0;
+        }
+        .intro {
+            font-size: 15px;
+            color: #555;
+            margin: 0 0 24px 0;
+        }
+        .chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 16px;
+            min-height: 200px;
+        }
+        .bubble {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-width: 88%;
+        }
+        .bubble.assistant {
+            background: #f5f5f5;
+            color: #000;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .bubble.user {
+            background: #000;
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .bubble pre {
+            margin: 8px 0;
+            padding: 12px;
+            background: #1a1a1a;
+            color: #f5f5f5;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.5;
+            position: relative;
+        }
+        .bubble.assistant pre code {
+            color: inherit;
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
+            font-size: inherit;
+        }
+        .bubble code {
+            background: rgba(0, 0, 0, 0.06);
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+            font-size: 0.92em;
+        }
+        .bubble.user code { background: rgba(255, 255, 255, 0.15); }
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #f5f5f5;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            padding: 4px 10px;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 400;
+            cursor: pointer;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        .copy-btn:hover { background: rgba(255, 255, 255, 0.2); }
+        .copy-btn.copied { background: #2f7a4f; border-color: #2f7a4f; color: #fff; }
+        .thinking {
+            align-self: flex-start;
+            color: #888;
+            font-size: 14px;
+            font-style: italic;
+            padding: 8px 16px;
+        }
+        .thinking::after {
+            content: "";
+            display: inline-block;
+            width: 0;
+            animation: dots 1.4s steps(4, end) infinite;
+        }
+        @keyframes dots {
+            0%   { content: ""; }
+            25%  { content: "."; }
+            50%  { content: ".."; }
+            75%  { content: "..."; }
+            100% { content: ""; }
+        }
+        .composer {
+            display: flex;
+            gap: 8px;
+            border-top: 1px solid #eee;
+            padding-top: 16px;
+        }
+        .composer textarea {
+            flex: 1;
+            font: inherit;
+            font-size: 15px;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            resize: none;
+            min-height: 44px;
+            max-height: 160px;
+            line-height: 1.4;
+            font-family: inherit;
+        }
+        .composer textarea:focus { outline: 2px solid #000; outline-offset: -1px; border-color: transparent; }
+        .composer button {
+            font: inherit;
+            font-size: 15px;
+            padding: 10px 20px;
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 400;
+        }
+        .composer button:hover { background: #333; }
+        .composer button:disabled { background: #ccc; cursor: not-allowed; }
+        .footer-row {
+            margin-top: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: #888;
+        }
+        .reset-btn {
+            font: inherit;
+            font-size: 13px;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            padding: 0;
+            text-decoration: underline;
+        }
+        .reset-btn:hover { color: #000; }
+        .error-msg {
+            color: #b03a3a;
+            font-size: 14px;
+            padding: 8px 12px;
+            background: #fdeaea;
+            border-radius: 6px;
+            align-self: stretch;
+        }
+        a.backlink { color: #888; text-decoration: underline; }
+        a.backlink:hover { color: #000; }
+    </style>
+</head>
+<body>
+<div class="integrate-page">
+    <h1>Integration assistant</h1>
+    <p class="tagline">Tell me about your project — I'll generate a working olliemail embed for you.</p>
+    <p class="intro">Best for developers who want help wiring up the <code>Lobby()</code> embed for their site, especially when the canvas is generative or changes after page load. Conversation typically takes 3–5 messages.</p>
+
+    <div class="chat" id="chat" aria-live="polite"></div>
+
+    <form class="composer" id="composer">
+        <textarea id="input" placeholder="Describe your project… (Enter to send, Shift+Enter for newline)" rows="1" autofocus></textarea>
+        <button type="submit" id="send-btn">Send</button>
+    </form>
+
+    <div class="footer-row">
+        <a class="backlink" href="/">← Back to olliemail</a>
+        <button type="button" class="reset-btn" id="reset-btn">Reset conversation</button>
+    </div>
+</div>
+
+<script>
+(function() {
+    const BACKEND = '/be';
+    const FIRST_USER_TURN = "I want to integrate olliemail into my site.";
+
+    const chatEl = document.getElementById('chat');
+    const inputEl = document.getElementById('input');
+    const sendBtn = document.getElementById('send-btn');
+    const composerEl = document.getElementById('composer');
+    const resetBtn = document.getElementById('reset-btn');
+
+    let messages = [];
+    let nonce = null;
+    let sending = false;
+
+    async function getNonce() {
+        const res = await fetch(BACKEND + '/nonce', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: '{}',
+        });
+        if (!res.ok) throw new Error('Could not start session');
+        const data = await res.json();
+        return data.nonce;
+    }
+
+    function escapeHtml(s) {
+        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // Minimal markdown: fenced code blocks (with copy button) + inline code.
+    function renderContent(text) {
+        const parts = [];
+        const fenceRe = /```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g;
+        let lastIndex = 0;
+        let m;
+        while ((m = fenceRe.exec(text)) !== null) {
+            if (m.index > lastIndex) {
+                parts.push({ type: 'text', value: text.slice(lastIndex, m.index) });
+            }
+            parts.push({ type: 'code', lang: m[1] || '', value: m[2] });
+            lastIndex = m.index + m[0].length;
+        }
+        if (lastIndex < text.length) {
+            parts.push({ type: 'text', value: text.slice(lastIndex) });
+        }
+
+        return parts.map(p => {
+            if (p.type === 'code') {
+                return `<pre><button class="copy-btn" data-code="${escapeHtml(p.value)}">Copy</button><code>${escapeHtml(p.value)}</code></pre>`;
+            }
+            // Light inline code rendering for `foo` spans.
+            return escapeHtml(p.value).replace(/`([^`\n]+)`/g, (_, c) => `<code>${c}</code>`);
+        }).join('');
+    }
+
+    function appendBubble(role, text) {
+        const div = document.createElement('div');
+        div.className = 'bubble ' + role;
+        div.innerHTML = renderContent(text);
+        chatEl.appendChild(div);
+        scrollToBottom();
+    }
+
+    function appendThinking() {
+        const div = document.createElement('div');
+        div.className = 'thinking';
+        div.id = 'thinking-indicator';
+        div.textContent = 'Thinking';
+        chatEl.appendChild(div);
+        scrollToBottom();
+    }
+
+    function removeThinking() {
+        const el = document.getElementById('thinking-indicator');
+        if (el) el.remove();
+    }
+
+    function appendError(msg) {
+        const div = document.createElement('div');
+        div.className = 'error-msg';
+        div.textContent = msg;
+        chatEl.appendChild(div);
+        scrollToBottom();
+    }
+
+    function scrollToBottom() {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+
+    async function sendMessage(text, { hidden = false } = {}) {
+        if (sending) return;
+        sending = true;
+        sendBtn.disabled = true;
+        if (!hidden) appendBubble('user', text);
+        messages.push({ role: 'user', content: text });
+        appendThinking();
+
+        try {
+            if (!nonce) nonce = await getNonce();
+            const res = await fetch(BACKEND + '/integrate-chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nonce, messages }),
+            });
+            const data = await res.json();
+            removeThinking();
+            if (data.result === 'ok' && data.message) {
+                messages.push({ role: 'assistant', content: data.message });
+                appendBubble('assistant', data.message);
+            } else if (res.status === 403) {
+                // Nonce probably expired — refresh and retry once.
+                nonce = await getNonce();
+                const retry = await fetch(BACKEND + '/integrate-chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nonce, messages }),
+                });
+                const retryData = await retry.json();
+                if (retryData.result === 'ok' && retryData.message) {
+                    messages.push({ role: 'assistant', content: retryData.message });
+                    appendBubble('assistant', retryData.message);
+                } else {
+                    appendError(retryData.message || 'Session expired. Try resetting the conversation.');
+                }
+            } else {
+                appendError(data.message || 'Something went wrong. Please try again.');
+            }
+        } catch (err) {
+            removeThinking();
+            appendError('Network error: ' + (err.message || 'unknown'));
+        } finally {
+            sending = false;
+            sendBtn.disabled = false;
+        }
+    }
+
+    composerEl.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = inputEl.value.trim();
+        if (!text) return;
+        inputEl.value = '';
+        autoResize();
+        sendMessage(text);
+    });
+
+    inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            composerEl.requestSubmit();
+        }
+    });
+
+    function autoResize() {
+        inputEl.style.height = 'auto';
+        inputEl.style.height = Math.min(inputEl.scrollHeight, 160) + 'px';
+    }
+    inputEl.addEventListener('input', autoResize);
+
+    chatEl.addEventListener('click', (e) => {
+        if (e.target.classList.contains('copy-btn')) {
+            const code = e.target.getAttribute('data-code');
+            navigator.clipboard.writeText(code).then(() => {
+                e.target.textContent = 'Copied';
+                e.target.classList.add('copied');
+                setTimeout(() => {
+                    e.target.textContent = 'Copy';
+                    e.target.classList.remove('copied');
+                }, 1500);
+            });
+        }
+    });
+
+    resetBtn.addEventListener('click', () => {
+        if (!confirm('Start over? Current conversation will be cleared.')) return;
+        messages = [];
+        chatEl.innerHTML = '';
+        sendMessage(FIRST_USER_TURN, { hidden: true });
+    });
+
+    // Kick off with a hidden first user turn so the assistant's reply is the visible greeting.
+    sendMessage(FIRST_USER_TURN, { hidden: true });
+})();
+</script>
+</body>
+</html>

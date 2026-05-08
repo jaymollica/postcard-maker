@@ -186,5 +186,6 @@ $server->addClass('NonceController');
 $server->addClass('EmailController');
 $server->addClass('CostController');
 $server->addClass('TrackingController');
+$server->addClass('IntegrationController');
 
 $server->handle();
