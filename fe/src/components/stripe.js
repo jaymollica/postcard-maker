@@ -219,8 +219,12 @@ const CheckoutForm = (props) => {
       return;
     }
 
+    // Stripe's `country` here is the MERCHANT's country (always US for our
+    // Stripe account), not the customer's destination country. Passing a
+    // non-ISO value (e.g. "Brazil" from the Other-country input) throws
+    // "Invalid country code" and crashes the React tree.
     const pr = stripe.paymentRequest({
-      country: billingDetails.country || 'US',
+      country: 'US',
       currency: 'usd',
       total: {
         label: 'Postcard',
