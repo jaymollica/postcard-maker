@@ -16,9 +16,10 @@ export default function Landing() {
         <h1>olliemail</h1>
         <p className="landing-tagline">Enjoy getting mail again!</p>
         <p className="description">
-          A drop-in service that lets any browser-based art project mail a physical 4&times;6&quot; postcard
-          of an image rendered in a <code>&lt;canvas&gt;</code>. Visitors fill in a recipient address, pay,
-          and we mail the postcard.
+          Ollie Mail is a drop-in service that lets you easily mail a physical postcard of an image of your choice.
+        </p>
+        <p className="description">
+          Any artist, museum or gallery can easily begin to monetize their work or collection with Ollie Mail. If you are interested in joining our service you can reach us at <a className="backlink" href="mailto:support@olliemail.net">support@olliemail.net</a>.
         </p>
       </div>
 
