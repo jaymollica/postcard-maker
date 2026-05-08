@@ -318,6 +318,14 @@
             border-top: 1px solid #eee;
             font-size: 14px;
         }
+        .site-footer {
+            margin: 48px -20px 0;
+            padding: 24px 20px;
+            text-align: center;
+            color: #888;
+            font-size: 13px;
+            border-top: 1px solid #eee;
+        }
     </style>
 </head>
 <body>
@@ -478,6 +486,11 @@
     <div class="footer-back">
         <a class="backlink" href="/">← Back to olliemail</a>
     </div>
+
+    <footer class="site-footer">
+        &copy; <span id="cr-year"></span> Vague Media LLC
+    </footer>
 </div>
+<script>document.getElementById('cr-year').textContent = new Date().getFullYear();</script>
 </body>
 </html>

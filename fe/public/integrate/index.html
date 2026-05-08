@@ -351,6 +351,14 @@
         }
         a.backlink { color: #888; text-decoration: underline; }
         a.backlink:hover { color: #000; }
+        .site-footer {
+            margin: 32px -20px 0;
+            padding: 20px 20px 0;
+            text-align: center;
+            color: #888;
+            font-size: 13px;
+            border-top: 1px solid #eee;
+        }
     </style>
 </head>
 <body>
@@ -370,7 +378,12 @@
         <a class="backlink" href="/">← Back to olliemail</a>
         <button type="button" class="reset-btn" id="reset-btn">Reset conversation</button>
     </div>
+
+    <footer class="site-footer">
+        &copy; <span id="cr-year"></span> Vague Media LLC
+    </footer>
 </div>
+<script>document.getElementById('cr-year').textContent = new Date().getFullYear();</script>
 
 <script>
 (function() {

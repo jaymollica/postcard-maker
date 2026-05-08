@@ -116,6 +116,14 @@
     th, td { padding: 10px 8px; font-size: 13px; }
     input[type="number"] { width: 70px; }
   }
+  .site-footer {
+    margin-top: 40px;
+    padding-top: 24px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    border-top: 1px solid var(--line);
+  }
 </style>
 </head>
 <body>
@@ -154,6 +162,10 @@
     <p><strong>International shipping</strong> is only available for 4x6 postcards through Lob. International orders also automatically include a US return address (required by Lob).</p>
     <p><strong>Stripe fee</strong> is calculated as 2.9% + $0.30 for US-issued cards. Toggle "foreign-issued card" to add Stripe's 1.5% international card fee. International postcards default to assuming a foreign card.</p>
   </div>
+
+  <footer class="site-footer">
+    &copy; <span id="cr-year"></span> Vague Media LLC
+  </footer>
 </div>
 
 <script>
@@ -238,6 +250,7 @@
   render();
   document.getElementById('plan').addEventListener('change', render);
   document.getElementById('intl-card').addEventListener('change', render);
+  document.getElementById('cr-year').textContent = new Date().getFullYear();
 </script>
 </body>
 </html>
