@@ -157,6 +157,7 @@ require './controllers/NonceController.php';
 require './controllers/EmailController.php';
 require './controllers/CostController.php';
 require './controllers/TrackingController.php';
+require './controllers/IntegrationController.php';
 
 $server = new \Jacwright\RestServer\RestServer('production');
 
