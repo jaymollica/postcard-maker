@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Weekly email digest of olliemail funnel activity, one per artist
+ * Weekly email digest of Ollie Mail funnel activity, one per artist
  * whose domain entry has a digest_email in .domain-template-map.json.
  *
  * Flow:
@@ -301,7 +301,7 @@ function generate_summary_with_claude(Client $client, string $apiKey, string $do
         $facts .= "Gross revenue: \$" . number_format($stats['revenue_cents'] / 100, 2) . "\n";
     }
 
-    $system = "You are writing a weekly analytics summary for an artist who uses olliemail to ship "
+    $system = "You are writing a weekly analytics summary for an artist who uses Ollie Mail to ship "
             . "physical postcards of their generative artwork. Write ONE short paragraph (2-4 sentences) "
             . "addressed directly to the artist (\"you\", \"your visitors\"). Surface the single most "
             . "interesting signal from the data and skip the rest -- a stats table is rendered separately "
@@ -342,7 +342,7 @@ function generate_summary_with_claude(Client $client, string $apiKey, string $do
 function send_digest_email(string $to, string $domain, string $bodyText, array $stats, int $startTs, int $endTs, ?string $intendedFor): void {
     $startStr = date('M j', $startTs);
     $endStr   = date('M j', $endTs);
-    $subject  = "Your olliemail digest for $domain ($startStr - $endStr)";
+    $subject  = "Your Ollie Mail digest for $domain ($startStr - $endStr)";
 
     $banner = '';
     if ($intendedFor) {
@@ -383,7 +383,7 @@ function send_digest_email(string $to, string $domain, string $bodyText, array $
     $tx->messages->send(['message' => [
         'subject'    => $subject,
         'from_email' => 'do-not-reply@olliemail.net',
-        'from_name'  => 'olliemail',
+        'from_name'  => 'Ollie Mail',
         'to'         => [['email' => $to]],
         'html'       => $html,
     ]]);

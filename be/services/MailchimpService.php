@@ -80,7 +80,7 @@ class MailchimpService {
         <div style='max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;'>
             <div style='background: #0078d4; color: white; padding: 40px 20px; text-align: center;'>
                 <h1>Your postcard is on its way!</h1>
-                <p>Thanks for using olliemail</p>
+                <p>Thanks for using Ollie Mail</p>
             </div>
             <div style='padding: 20px;'>
                 <div style='background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 16px; margin-bottom: 20px;'>
@@ -108,7 +108,7 @@ class MailchimpService {
         $messageData = [
             'subject' => 'Your Postcard Receipt & Tracking 📮',
             'from_email' => 'do-not-reply@olliemail.net',
-            'from_name' => 'olliemail',
+            'from_name' => 'Ollie Mail',
             'to' => [[
                 'email' => $senderData['email'],
                 'name' => $senderData['name'] ?? ''

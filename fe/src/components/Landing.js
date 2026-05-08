@@ -13,7 +13,7 @@ export default function Landing() {
   return (
     <div className="App landing">
       <div className="landing-section landing-hero">
-        <h1>olliemail</h1>
+        <h1>Ollie Mail</h1>
         <p className="landing-tagline">Enjoy getting mail again!</p>
         <p className="description">
           Ollie Mail is a drop-in service that lets you easily mail a physical postcard of an image of your choice.
@@ -28,7 +28,7 @@ export default function Landing() {
         <ol className="landing-steps">
           <li>You embed a small JS snippet on your site, alongside a <code>&lt;canvas&gt;</code> and a button.</li>
           <li>A visitor generates artwork however your project works.</li>
-          <li>They click your button and land on olliemail with their image attached.</li>
+          <li>They click your button and land on Ollie Mail with their image attached.</li>
           <li>They enter a recipient address, pay, and we mail the postcard within a few days.</li>
         </ol>
       </div>
