@@ -10,7 +10,7 @@ module.exports = function (grunt) {
     'string-replace': {
       replaceUrls: {
         files: {
-          'lobby.js': 'lobbySrc.js',
+          'ollie.js': 'ollieSrc.js',
         },
         options: {
           replacements: [
@@ -29,12 +29,12 @@ module.exports = function (grunt) {
     uglify: {
         minifyJs: {
             files: {
-                'lobby.js': ['lobby.js'],
+                'ollie.js': ['ollie.js'],
             },
         },
     },
     watch: {
-      files: ['lobbySrc.js'],
+      files: ['ollieSrc.js'],
       tasks: ['string-replace', 'uglify'],
     },
   });

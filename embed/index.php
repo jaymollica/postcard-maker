@@ -1,7 +1,7 @@
 <?php
 
 // Set the path to the JavaScript file
-$js_file_path = './lobby.js';
+$js_file_path = './ollie.js';
 
 // Read the content of the JavaScript file
 $js_content = file_get_contents($js_file_path);

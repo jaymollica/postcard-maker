@@ -1,8 +1,8 @@
 {
-    "name": "lobby-embed",
+    "name": "ollie-embed",
     "version": "1.0.0",
     "description": "embed script build",
-    "main": "lobbySrc.js",
+    "main": "ollieSrc.js",
     "scripts": {
         "dev": "grunt dev",
         "build": "grunt build"

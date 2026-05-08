@@ -64,14 +64,14 @@ jobs:
         cd embed
         npm run build
 
-    - name: Deploy lobby.js to remote server
+    - name: Deploy ollie.js to remote server
       env:
         SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
       run: |
         sudo apt-get install -y sshpass
-        sshpass -p $SSH_PASSWORD scp -o StrictHostKeyChecking=no embed/lobby.js deploy@167.99.58.222:/var/www/html/embed
+        sshpass -p $SSH_PASSWORD scp -o StrictHostKeyChecking=no embed/ollie.js deploy@167.99.58.222:/var/www/html/embed
 
-  #sshpass -p $SSH_PASSWORD scp -P 22 -o StrictHostKeyChecking=no embed/lobby.js username@example.com:/var/www/html/postcards/embed
+  #sshpass -p $SSH_PASSWORD scp -P 22 -o StrictHostKeyChecking=no embed/ollie.js username@example.com:/var/www/html/postcards/embed
 
   deploy_be:
     runs-on: ubuntu-latest
