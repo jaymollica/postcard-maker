@@ -326,6 +326,9 @@
             font-size: 13px;
             border-top: 1px solid #eee;
         }
+        .site-footer a { color: inherit; text-decoration: underline; }
+        .site-footer a:hover { color: #000; }
+        .site-footer-sep { color: #ccc; margin: 0 4px; }
     </style>
 </head>
 <body>
@@ -488,7 +491,7 @@
     </div>
 
     <footer class="site-footer">
-        &copy; <span id="cr-year"></span> Vague Media LLC
+        &copy; <span id="cr-year"></span> Vague Media LLC <span class="site-footer-sep">·</span> <a href="/privacy">Privacy</a> <span class="site-footer-sep">·</span> <a href="/terms">Terms</a>
     </footer>
 </div>
 <script>document.getElementById('cr-year').textContent = new Date().getFullYear();</script>

@@ -125,6 +125,20 @@
   border-top: 1px solid #eee;
 }
 
+.site-footer a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.site-footer a:hover {
+  color: #000;
+}
+
+.site-footer-sep {
+  color: #ccc;
+  margin: 0 4px;
+}
+
 .landing-print-diagram {
   margin: 20px 0 8px;
   text-align: center;

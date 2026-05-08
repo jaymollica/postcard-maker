@@ -61,7 +61,7 @@ export default function Landing() {
       </div>
 
       <footer className="site-footer">
-        &copy; {new Date().getFullYear()} Vague Media LLC
+        &copy; {new Date().getFullYear()} Vague Media LLC <span className="site-footer-sep">·</span> <a href="/privacy">Privacy</a> <span className="site-footer-sep">·</span> <a href="/terms">Terms</a>
       </footer>
     </div>
   );
