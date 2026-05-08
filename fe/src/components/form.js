@@ -11,7 +11,12 @@ export default function Form(props){
 	const [address, setAddress] = useState({})
 	const [verifying, setVerifying] = useState(false)
 	const [country, setCountry] = useState('US')
+	const [otherCountry, setOtherCountry] = useState('')
 	const {recipientName, setRecipientName, setBillingDetails, postcardGenerated, setAddressVerified, addressVerified} = props;
+
+	// For the dropdown's "Other" option, the user types a country name; for
+	// every other option the dropdown value IS the country code we send.
+	const effectiveCountry = country === 'OTHER' ? otherCountry.trim() : country;
 
 	const handleFieldChange = (payload) => {
 		setAddress(payload.address)
@@ -29,14 +34,18 @@ export default function Form(props){
 			setVerifying(false);
 			// No popup message - user will see the button return to normal state
 		}
-		else if( country === 'US' ){
+		else if( country === 'OTHER' && !effectiveCountry ){
+			// "Other" picked but no country name typed — can't proceed.
+			setVerifying(false);
+		}
+		else if( effectiveCountry === 'US' ){
 			// Use Lob verification for US addresses
 			verify(lob_publishable_api_key_live, address).then((verificationResult) => {
 				setVerifying(false);
 				console.log('Verification Results', verificationResult)
 				if( verificationResult.valid_address && verificationResult.deliverability !== 'undeliverable' ){
 					setAddressVerified(true);
-					track('address_verified', { country: country });
+					track('address_verified', { country: effectiveCountry });
 					// Lob's verify can fold the apt/suite into primary_line and
 					// return an empty secondary_line. Fall back to what the user
 					// typed so line2 reflects the original input.
@@ -48,7 +57,7 @@ export default function Form(props){
 						state: verificationResult.components.state,
 						postal_code: verificationResult.components.zip_code,
 						name: recipientName,
-						country: country
+						country: effectiveCountry
 					});
 					// AddressForm wipes its own secondary_line input after verify
 					// (uncontrolled input, no `value` prop exposed). Push the value
@@ -78,7 +87,7 @@ export default function Form(props){
 			// International address - skip Lob verification and use address as-is
 			setVerifying(false);
 			setAddressVerified(true);
-			track('address_verified', { country: country });
+			track('address_verified', { country: effectiveCountry });
 			setBillingDetails({
 				line1: address.primaryLine || address.address1 || '',
 				line2: address.secondaryLine || address.address2 || '',
@@ -86,7 +95,7 @@ export default function Form(props){
 				state: address.state || '',
 				postal_code: address.postalCode || address.zipCode || '',
 				name: recipientName,
-				country: country
+				country: effectiveCountry
 			});
 		}
 	}
@@ -138,6 +147,7 @@ export default function Form(props){
 						value={country}
 						onChange={(e) => {
 							setCountry(e.target.value);
+							setOtherCountry('');
 							setAddressVerified(false);
 							setAddress({});
 						}}
@@ -155,6 +165,24 @@ export default function Form(props){
 						<option value="OTHER">Other</option>
 					</select>
 				</div>
+
+				{country === 'OTHER' && (
+					<div style={fieldStyle}>
+						<label style={labelStyle} htmlFor='other_country'>
+							Country name
+						</label>
+						<input
+							style={inputStyle}
+							id='other_country'
+							onChange={(e) => {
+								setOtherCountry(e.target.value);
+								setAddressVerified(false);
+							}}
+							value={otherCountry}
+							placeholder="e.g. Brazil"
+						/>
+					</div>
+				)}
 
 				{/* Recipient Name Field */}
 				<div style={fieldStyle}>
