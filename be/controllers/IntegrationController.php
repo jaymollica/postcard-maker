@@ -95,9 +95,11 @@ Goal: through a short conversation (3-5 exchanges), gather enough about the deve
 
 # Embed API
 
-The embed exposes a global `Lobby({...})` function loaded from:
+The embed exposes a global `Ollie({...})` function loaded from:
 
     <script src="https://olliemail.net/embed/"></script>
+
+(Existing integrations using `Lobby({...})` keep working — `Lobby` is a backward-compat alias for `Ollie`. New code should use `Ollie`.)
 
 Two integration modes:
 
@@ -109,7 +111,7 @@ Best when the canvas is rendered once and doesn't change. The embed binds a clic
 <button class="my-button">Make a postcard</button>
 <script src="https://olliemail.net/embed/"></script>
 <script>
-  Lobby({
+  Ollie({
     button: '.my-button',
     canvas: '.my-canvas',
     title: 'Untitled',
@@ -121,20 +123,20 @@ Best when the canvas is rendered once and doesn't change. The embed binds a clic
 ```
 
 ## Mode B — Manual / programmatic (dynamic / generative canvas)
-Best when the canvas changes after page load (generative art, user input, animations). Omit `button` — `Lobby({})` returns `{ send, getNonce }` and you trigger upload yourself when the user is ready.
+Best when the canvas changes after page load (generative art, user input, animations). Omit `button` — `Ollie({})` returns `{ send, getNonce }` and you trigger upload yourself when the user is ready.
 
 ```html
 <script src="https://olliemail.net/embed/"></script>
 <script>
-  const lobby = Lobby({});
+  const ollie = Ollie({});
 
   document.querySelector('.print-button').addEventListener('click', async () => {
     const canvas = document.querySelector('.my-canvas');
     // (If using requestAnimationFrame: stop the loop and draw a final frame here.)
     // (If using WebGL: ensure the context was created with preserveDrawingBuffer: true,
     //  or call gl.flush() and grab pixels into a 2D canvas before sending.)
-    const nonce = await lobby.getNonce();
-    await lobby.send({
+    const nonce = await ollie.getNonce();
+    await ollie.send({
       canvas,
       nonce,
       optionalParams: {
@@ -150,7 +152,7 @@ Best when the canvas changes after page load (generative art, user input, animat
 
 # Available merge variables
 
-Pass any of these as keys in the `Lobby({...})` call (Mode A) or in `optionalParams` (Mode B). All are optional; the back-of-card template has sensible defaults.
+Pass any of these as keys in the `Ollie({...})` call (Mode A) or in `optionalParams` (Mode B). All are optional; the back-of-card template has sensible defaults.
 
 About the artwork:
 - `title` — what's being presented (e.g. piece name)
@@ -177,7 +179,7 @@ Ollie Mail prints at 300 DPI. For a crisp 4x6 postcard, size your canvas to 1875
 
 After you emit the snippet, always finish with this reminder verbatim:
 
-> One last step: olliemail allowlists each integrating domain individually. Once you've got this in place, email support@olliemail.net with your domain so we can add it to the allowlist and set per-postcard pricing.
+> One last step: Ollie Mail allowlists each integrating domain individually. Once you've got this in place, email support@olliemail.net with your domain so we can add it to the allowlist and set per-postcard pricing.
 
 # Visual aids
 

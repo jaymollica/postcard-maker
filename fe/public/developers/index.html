@@ -364,7 +364,7 @@
     <div class="dev-section">
         <h2>Embed</h2>
         <p class="description">
-            Include the embed script after your canvas + button, then call <code>Lobby()</code> with selectors for each:
+            Include the embed script after your canvas + button, then call <code>Ollie()</code> with selectors for each:
         </p>
         <pre class="code-block">&lt;!-- Drop the embed script after your canvas + button --&gt;
 &lt;canvas class="my-canvas"&gt;&lt;/canvas&gt;
@@ -372,7 +372,7 @@
 
 &lt;script src="https://olliemail.net/embed/"&gt;&lt;/script&gt;
 &lt;script&gt;
-  Lobby({
+  Ollie({
     button: '.my-button',
     canvas: '.my-canvas',
     // Any extra keys become merge variables on the postcard
@@ -384,7 +384,10 @@
   });
 &lt;/script&gt;</pre>
         <p class="description">
-            For generative or dynamically-updating canvases, omit <code>button</code> and <code>Lobby()</code> returns <code>{ send, getNonce }</code> for you to call manually when the user is ready. The <a class="backlink" href="/integrate">integration assistant</a> can write either pattern for you based on your project description.
+            For generative or dynamically-updating canvases, omit <code>button</code> and <code>Ollie()</code> returns <code>{ send, getNonce }</code> for you to call manually when the user is ready. The <a class="backlink" href="/integrate">integration assistant</a> can write either pattern for you based on your project description.
+        </p>
+        <p class="description">
+            Existing integrations using <code>Lobby({...})</code> still work — <code>Lobby</code> is a backward-compat alias. New code should prefer <code>Ollie</code>.
         </p>
         <p class="description">
             Domains must be allowlisted before they can use the service. As part of allowlisting, the artist (or maker, or developer) sets the per-postcard price &mdash; with separate values for US and international orders &mdash; so you choose what your audience pays.
@@ -430,7 +433,7 @@
     <div class="dev-section">
         <h2>Merge variables</h2>
         <p class="description">
-            Any extra keys you pass to <code>Lobby()</code> beyond <code>button</code> and <code>canvas</code> become merge variables on the postcard. The default templates render the variables below — pass them to fill in the corresponding <code>{{variableName}}</code> placeholders. Variables marked <em>auto</em> are filled in automatically.
+            Any extra keys you pass to <code>Ollie()</code> beyond <code>button</code> and <code>canvas</code> become merge variables on the postcard. The default templates render the variables below — pass them to fill in the corresponding <code>{{variableName}}</code> placeholders. Variables marked <em>auto</em> are filled in automatically.
         </p>
 
         <div class="pb-diagram">

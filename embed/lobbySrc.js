@@ -1,7 +1,7 @@
 const BACKEND_URL = '__BACKEND_URL__';
 const FRONTEND_ORIGIN = '__FRONTEND_ORIGIN__';
 
-function Lobby({button, canvas,  ...optionalParams} = {}){
+function Ollie({button, canvas,  ...optionalParams} = {}){
 
 	this._send = async function({canvas, nonce, optionalParams}){
 
@@ -110,3 +110,8 @@ function Lobby({button, canvas,  ...optionalParams} = {}){
 
 	document.addEventListener('DOMContentLoaded', this._getNonce.bind(null, this));
 }
+
+// Backward-compat alias: existing partner integrations call Lobby({...}); new
+// docs and the integration assistant teach Ollie({...}). Keep both indefinitely
+// so we don't break sweetpost.art, dapperasfuck.com, etc.
+var Lobby = Ollie;

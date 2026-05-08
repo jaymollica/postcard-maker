@@ -93,7 +93,7 @@ class LobController
                     // Default the QR code to the originating artist site URL so
                     // recipients can scan to visit the project that made the
                     // postcard. Artists can still override with their own
-                    // qrCodeUrl in the Lobby() optionalParams if they want.
+                    // qrCodeUrl in the Ollie() optionalParams if they want.
                     if (!property_exists($merge_variables, 'qrCodeUrl') || empty($merge_variables->qrCodeUrl)) {
                         $merge_variables->qrCodeUrl = $data->artistUrl ?? 'https://olliemail.net';
                     }
