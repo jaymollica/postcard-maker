@@ -45,6 +45,11 @@ class TrackingController
             'date_created' => $postcard['date_created'] ?? null,
             'send_date' => $postcard['send_date'] ?? null,
             'expected_delivery_date' => $postcard['expected_delivery_date'] ?? null,
+            // Lob lifecycle status (created/processed/printed/mailed/in_transit/
+            // in_local_area/processed_for_delivery/delivered/re_routed/
+            // returned_to_sender). Drives the step-by-step progress on the FE.
+            'status' => $postcard['status'] ?? null,
+            'carrier' => $postcard['carrier'] ?? null,
             'tracking_events' => $postcard['tracking_events'] ?? array(),
             // Recipient info -- name + city/state/country only. Street address
             // and email are intentionally not returned so a forwarded tracking

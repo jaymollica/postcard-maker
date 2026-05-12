@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import './Tracking.css';
 import { track } from './../analytics.js';
 
-// Lob's tracking_event types map roughly onto these display labels.
+// Lob's tracking_event types map roughly onto these display labels (used
+// in the "Recent activity" detail list below the main step view).
 const EVENT_LABELS = {
   in_transit: 'In transit',
   in_local_area: 'In local area',
@@ -10,6 +11,38 @@ const EVENT_LABELS = {
   delivered: 'Delivered',
   're-routed': 'Re-routed',
   returned_to_sender: 'Returned to sender',
+};
+
+// The visible steps, in order. Each step has:
+//   - key: identifier
+//   - label: shown to user
+//   - reachedAt: index in STATUS_ORDER at or after which this step is "done"
+const STEPS = [
+  { key: 'order_placed',     label: 'Order placed' },
+  { key: 'printed',          label: 'Printed' },
+  { key: 'mailed',           label: 'Mailed' },
+  { key: 'in_transit',       label: 'In transit' },
+  { key: 'in_local_area',    label: 'Near recipient' },
+  { key: 'delivered',        label: 'Delivered' },
+];
+
+// Map Lob postcard.status to "which step we've reached". Anything not listed
+// is treated as step 0 (just placed).
+const STATUS_TO_STEP_INDEX = {
+  created:                0,
+  ready:                  1,
+  processed:              1,
+  printed:                1,
+  mailed:                 2,
+  in_transit:             3,
+  in_local_area:          4,
+  processed_for_delivery: 4,
+  delivered:              5,
+  // Terminal-but-not-delivered states. Treat as roughly "in transit" — the
+  // detailed events list below will show the actual reason.
+  're_routed':            3,
+  're-routed':            3,
+  returned_to_sender:     3,
 };
 
 function formatDate(value) {
@@ -26,14 +59,62 @@ function formatDateTime(value) {
   return d.toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 }
 
-function getCurrentStatus(data) {
-  if (!data) return 'Loading';
-  if (data.tracking_events && data.tracking_events.length > 0) {
-    const latest = data.tracking_events[data.tracking_events.length - 1];
-    return EVENT_LABELS[latest.type] || latest.name || 'In transit';
+// Find the earliest tracking_event whose type matches any of `types`. Returns
+// the event time or null.
+function firstEventTimeOfType(events, types) {
+  if (!events) return null;
+  for (const ev of events) {
+    if (types.includes(ev.type)) return ev.time;
   }
-  if (data.send_date) return 'Mailed';
-  return 'Processing';
+  return null;
+}
+
+// Compute the display date for each step from the postcard data.
+function buildStepRows(data) {
+  const events = data.tracking_events || [];
+  const currentStepIdx = STATUS_TO_STEP_INDEX[data.status] ?? 0;
+
+  return STEPS.map((step, idx) => {
+    let date = null;
+    let datePrefix = '';
+
+    switch (step.key) {
+      case 'order_placed':
+        date = data.date_created;
+        break;
+      case 'printed':
+        // Lob doesn't expose a separate "printed at" timestamp; if we've
+        // reached this step or beyond, the send_date is close enough since
+        // print+mail happen the same day.
+        if (idx <= currentStepIdx) date = data.send_date || data.date_created;
+        break;
+      case 'mailed':
+        date = data.send_date;
+        break;
+      case 'in_transit':
+        date = firstEventTimeOfType(events, ['in_transit']);
+        break;
+      case 'in_local_area':
+        date = firstEventTimeOfType(events, ['in_local_area', 'processed_for_delivery']);
+        break;
+      case 'delivered':
+        date = firstEventTimeOfType(events, ['delivered']);
+        if (!date && data.expected_delivery_date) {
+          date = data.expected_delivery_date;
+          datePrefix = 'Expected ';
+        }
+        break;
+      default: break;
+    }
+
+    return {
+      ...step,
+      done: idx <= currentStepIdx,
+      current: idx === currentStepIdx,
+      date,
+      datePrefix,
+    };
+  });
 }
 
 export default function Tracking({ postcardId }) {
@@ -88,30 +169,44 @@ export default function Tracking({ postcardId }) {
     );
   }
 
-  const status = getCurrentStatus(data);
+  const steps = buildStepRows(data);
   const recipient = data.recipient || {};
   const recipientLine = [recipient.city, recipient.state].filter(Boolean).join(', ');
-  const expectedDelivery = formatDate(data.expected_delivery_date);
-  const sendDate = formatDate(data.send_date);
   const dateCreated = formatDate(data.date_created);
 
-  // Reverse so most-recent event shows at the top
+  // Reverse-chrono detail list (USPS scan events)
   const events = [...(data.tracking_events || [])].reverse();
 
   return (
     <div className="App tracking">
       <h1>Postcard tracking</h1>
 
-      <div className="tracking-status">
-        <div className="tracking-status-label">Current status</div>
-        <div className="tracking-status-value">{status}</div>
-      </div>
-
       {data.thumbnail && (
         <div className="tracking-thumbnail">
           <img src={data.thumbnail} alt="Postcard preview" />
         </div>
       )}
+
+      <ol className="tracking-steps">
+        {steps.map((step, i) => (
+          <li
+            key={step.key}
+            className={`tracking-step ${step.done ? 'is-done' : ''} ${step.current ? 'is-current' : ''}`}
+          >
+            <div className="tracking-step-marker" aria-hidden="true">
+              {step.done ? '●' : '○'}
+            </div>
+            <div className="tracking-step-body">
+              <div className="tracking-step-label">{step.label}</div>
+              <div className="tracking-step-date">
+                {step.date
+                  ? `${step.datePrefix}${formatDate(step.date)}`
+                  : <span className="muted">&mdash;</span>}
+              </div>
+            </div>
+          </li>
+        ))}
+      </ol>
 
       <dl className="tracking-meta">
         {recipient.name && (
@@ -124,46 +219,38 @@ export default function Tracking({ postcardId }) {
             </dd>
           </>
         )}
-        {expectedDelivery && (
-          <>
-            <dt>Expected delivery</dt>
-            <dd>{expectedDelivery}</dd>
-          </>
-        )}
-        {sendDate && (
-          <>
-            <dt>Mailed</dt>
-            <dd>{sendDate}</dd>
-          </>
-        )}
         {dateCreated && (
           <>
             <dt>Order placed</dt>
             <dd>{dateCreated}</dd>
           </>
         )}
+        {data.carrier && (
+          <>
+            <dt>Carrier</dt>
+            <dd>{data.carrier}</dd>
+          </>
+        )}
         <dt>Reference</dt>
         <dd><code>{data.id}</code></dd>
       </dl>
 
-      <h2>Timeline</h2>
-      {events.length === 0 ? (
-        <p className="description">
-          No tracking events recorded yet. Postcards typically don&apos;t get scan events until they&apos;re close to the destination &mdash; check back in a few days.
-        </p>
-      ) : (
-        <ol className="tracking-timeline">
-          {events.map((ev, i) => (
-            <li key={ev.id || i}>
-              <div className="tracking-timeline-time">{formatDateTime(ev.time)}</div>
-              <div className="tracking-timeline-name">
-                {EVENT_LABELS[ev.type] || ev.name || ev.type}
-              </div>
-              {ev.description && <div className="tracking-timeline-desc">{ev.description}</div>}
-              {ev.location && <div className="tracking-timeline-loc">{ev.location}</div>}
-            </li>
-          ))}
-        </ol>
+      {events.length > 0 && (
+        <>
+          <h2>Recent activity</h2>
+          <ol className="tracking-timeline">
+            {events.map((ev, i) => (
+              <li key={ev.id || i}>
+                <div className="tracking-timeline-time">{formatDateTime(ev.time)}</div>
+                <div className="tracking-timeline-name">
+                  {EVENT_LABELS[ev.type] || ev.name || ev.type}
+                </div>
+                {ev.description && <div className="tracking-timeline-desc">{ev.description}</div>}
+                {ev.location && <div className="tracking-timeline-loc">{ev.location}</div>}
+              </li>
+            ))}
+          </ol>
+        </>
       )}
     </div>
   );
