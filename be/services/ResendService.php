@@ -28,7 +28,7 @@ class ResendService {
                 'email_sent' => $emailResult,
                 'added_to_audience' => $audienceResult,
             ];
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             error_log('ResendService error: ' . $e->getMessage());
             return [
                 'error' => 'Failed to send email or add to audience',
@@ -118,16 +118,23 @@ class ResendService {
             return ['skipped' => 'no email provided'];
         }
         try {
-            return $this->client->contacts->create([
+            // Resend SDK signature: contacts->create($audienceId, $params),
+            // NOT $params with audience_id as a key. The SDK type-checks $audienceId
+            // as string and throws TypeError (not Exception) on mismatch — which
+            // bypassed our catch on the previous version of this code.
+            return $this->client->contacts->create($this->audienceId, [
                 'email' => $senderData['email'],
                 'first_name' => $senderData['first_name'] ?? '',
                 'last_name' => $senderData['last_name'] ?? '',
                 'unsubscribed' => false,
-                'audience_id' => $this->audienceId,
             ]);
-        } catch (Exception $e) {
-            // Resend returns 409 if contact already exists in the audience.
-            // Don't fail the whole flow on that; just log and move on.
+        } catch (\Throwable $e) {
+            // Catch Throwable (not just Exception) so an SDK TypeError or any
+            // other Error doesn't 500 the postcard flow. The postcard itself
+            // has already shipped at this point — failing the receipt because
+            // of an audience-add hiccup would mis-signal "order failed" to the
+            // user and prompt a duplicate purchase. Resend returns 409 if the
+            // contact already exists; that's expected for returning buyers.
             error_log('ResendService addToAudience non-fatal: ' . $e->getMessage());
             return ['error' => $e->getMessage()];
         }
