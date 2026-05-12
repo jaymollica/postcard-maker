@@ -12,7 +12,7 @@ declare(strict_types=1);
  *      every artist domain gets its own scorecard.
  *   3. Sends the scorecard to Claude (Haiku 4.5) with a prompt asking
  *      for a short, plain-language summary written to the artist.
- *   4. Wraps the response in an HTML email and sends via Mandrill.
+ *   4. Wraps the response in an HTML email and sends via Resend.
  *
  * Setup -- add to be/.env on the server:
  *   UMAMI_USERNAME=<your Umami admin username, default 'admin'>
@@ -47,7 +47,7 @@ require $root . '/vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable($root);
 $dotenv->load();
 
-require_once $root . '/services/MailchimpService.php';
+require_once $root . '/services/ResendService.php';
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
@@ -378,15 +378,8 @@ function send_digest_email(string $to, string $domain, string $bodyText, array $
         </div>
     </div>";
 
-    $service = new MailchimpService();
-    $tx = (new \MailchimpTransactional\ApiClient())->setApiKey($_ENV['MANDRILL_API_KEY']);
-    $tx->messages->send(['message' => [
-        'subject'    => $subject,
-        'from_email' => 'do-not-reply@olliemail.net',
-        'from_name'  => 'Ollie Mail',
-        'to'         => [['email' => $to]],
-        'html'       => $html,
-    ]]);
+    $service = new ResendService();
+    $service->sendEmail($to, $subject, $html);
 }
 
 function row(string $k, string $v): string {

@@ -190,8 +190,8 @@ class LobController
                         $result = json_decode($response->getBody(), true);
 
                         try {
-                            require_once __DIR__ . '/../services/MailchimpService.php';
-                            $mailchimpService = new MailchimpService();
+                            require_once __DIR__ . '/../services/ResendService.php';
+                            $emailService = new ResendService();
                             
                             // Extract data correctly from the frontend structure
                             $postcardData = [
@@ -219,7 +219,7 @@ class LobController
                             $result['payment_intent_id'] = $payment_intent_id;
                             $result['original_cost'] = $default_cost; // Pass domain-specific original cost
 
-                            $emailResult = $mailchimpService->sendPostcardReceipt(
+                            $emailResult = $emailService->sendPostcardReceipt(
                                 $postcardData,
                                 $senderData,
                                 $result

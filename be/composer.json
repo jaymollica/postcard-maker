@@ -6,7 +6,6 @@
         "aws/aws-sdk-php": "^3.263",
         "vlucas/phpdotenv": "^5.5",
         "mixpanel/mixpanel-php": "^2.11",
-        "mailchimp/transactional": "^1.0",
-        "drewm/mailchimp-api": "^2.5"
+        "resend/resend-php": "^0.13"
     }
 }

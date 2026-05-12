@@ -1,81 +1,77 @@
 <?php
 require_once 'vendor/autoload.php';
 
-use MailchimpTransactional\ApiClient;
-use DrewM\MailChimp\MailChimp;
+// Transactional + audience replacement for the old MailchimpService.
+// Resend handles both: emails->send for transactional, contacts->create
+// against an audience_id for the marketing list.
+class ResendService {
+    private $client;
+    private $audienceId;
+    private $fromAddress;
 
-class MailchimpService {
-    private $transactional;
-    private $marketing;
-    
     public function __construct() {
-        // Initialize Mandrill for transactional emails
-        $this->transactional = new ApiClient();
-        $this->transactional->setApiKey($_ENV['MANDRILL_API_KEY']);
-        
-        // Initialize Mailchimp for audience management
-        $this->marketing = new MailChimp($_ENV['MAILCHIMP_API_KEY']);
+        $apiKey = $_ENV['RESEND_API_KEY'] ?? '';
+        if (!$apiKey) {
+            throw new RuntimeException('RESEND_API_KEY not set');
+        }
+        $this->client = Resend::client($apiKey);
+        $this->audienceId = $_ENV['RESEND_AUDIENCE_ID'] ?? '';
+        $this->fromAddress = $_ENV['RESEND_FROM'] ?? 'Ollie Mail <do-not-reply@olliemail.net>';
     }
-    
+
     public function sendPostcardReceipt($postcardData, $senderData, $lobData) {
         try {
-            // Send transactional email
             $emailResult = $this->sendTransactionalEmail($postcardData, $senderData, $lobData);
-            
-            // Add to audience
             $audienceResult = $this->addToAudience($senderData);
-            
+
             return [
                 'email_sent' => $emailResult,
-                'added_to_audience' => $audienceResult
+                'added_to_audience' => $audienceResult,
             ];
         } catch (Exception $e) {
-            error_log('Mailchimp service error: ' . $e->getMessage());
+            error_log('ResendService error: ' . $e->getMessage());
             return [
                 'error' => 'Failed to send email or add to audience',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ];
         }
     }
-    
+
+    // Generic transactional sender — used by the weekly digest script.
+    public function sendEmail($to, $subject, $html, $extra = []) {
+        $payload = array_merge([
+            'from' => $this->fromAddress,
+            'to' => is_array($to) ? $to : [$to],
+            'subject' => $subject,
+            'html' => $html,
+        ], $extra);
+        return $this->client->emails->send($payload);
+    }
+
     private function sendTransactionalEmail($postcardData, $senderData, $lobData) {
-        error_log('=== MAILCHIMP SERVICE DEBUG ===');
-        error_log('Received lobData: ' . json_encode($lobData));
-        error_log('Received senderData: ' . json_encode($senderData));
-        error_log('Received postcardData: ' . json_encode($postcardData));
-        
         $deliveryEstimate = $this->calculateDeliveryEstimate($lobData['date_created']);
-        
-        // Calculate actual cost paid (after promo codes)
-        $originalCost = $lobData['original_cost'] ?? 80; // Use domain-specific cost with fallbackRetry
+
+        // Cost paid, accounting for promo codes that may have lowered it.
+        $originalCost = $lobData['original_cost'] ?? 80;
         $actualCost = $lobData['cost'] ?? $originalCost;
         $promoApplied = $actualCost < $originalCost;
-        
-        // Build cost display
+
         $costDisplay = '$' . number_format($actualCost / 100, 2);
         if ($promoApplied) {
             $savings = $originalCost - $actualCost;
             $costDisplay .= ' <span style="color: #28a745;">(Promo applied - saved $' . number_format($savings / 100, 2) . ')</span>';
         }
 
-        // Get payment intent ID
         $paymentIntentId = $lobData['payment_intent_id'] ?? 'N/A';
         $postcardId = $lobData['id'] ?? 'N/A';
-        
-        error_log('Payment Intent ID extracted: ' . $paymentIntentId);
-        error_log('Postcard ID: ' . $postcardId);
-        
+
         // Tracking URL points at our own /?track=<postcardId> route on the
         // React frontend, which fetches from /track and shows progress.
-        // Falls back to '#' only when the postcard ID is missing.
         $frontendUrl = $_ENV['FRONTEND_URL'] ?? 'https://olliemail.net';
         $trackingUrl = (!empty($postcardId) && $postcardId !== 'N/A')
             ? rtrim($frontendUrl, '/') . '/?track=' . urlencode($postcardId)
             : '#';
-        
 
-
-        // Build inline HTML with both IDs clearly displayed
         $htmlContent = "
         <div style='max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;'>
             <div style='background: #0078d4; color: white; padding: 40px 20px; text-align: center;'>
@@ -105,53 +101,52 @@ class MailchimpService {
             </div>
         </div>";
 
-        $messageData = [
+        $result = $this->client->emails->send([
+            'from' => $this->fromAddress,
+            'to' => [$senderData['email']],
             'subject' => 'Your Postcard Receipt & Tracking 📮',
-            'from_email' => 'do-not-reply@olliemail.net',
-            'from_name' => 'Ollie Mail',
-            'to' => [[
-                'email' => $senderData['email'],
-                'name' => $senderData['name'] ?? ''
-            ]],
             'html' => $htmlContent,
-        ];
-        
+        ]);
+        return $result;
+    }
+
+    private function addToAudience($senderData) {
+        if (!$this->audienceId) {
+            return ['skipped' => 'RESEND_AUDIENCE_ID not configured'];
+        }
+        if (empty($senderData['email'])) {
+            return ['skipped' => 'no email provided'];
+        }
         try {
-            $result = $this->transactional->messages->send(['message' => $messageData]);
-            error_log('Mandrill result: ' . json_encode($result));
-            return $result;
+            return $this->client->contacts->create([
+                'email' => $senderData['email'],
+                'first_name' => $senderData['first_name'] ?? '',
+                'last_name' => $senderData['last_name'] ?? '',
+                'unsubscribed' => false,
+                'audience_id' => $this->audienceId,
+            ]);
         } catch (Exception $e) {
-            error_log('Mandrill error: ' . $e->getMessage());
-            throw $e;
+            // Resend returns 409 if contact already exists in the audience.
+            // Don't fail the whole flow on that; just log and move on.
+            error_log('ResendService addToAudience non-fatal: ' . $e->getMessage());
+            return ['error' => $e->getMessage()];
         }
     }
-    
-    private function addToAudience($senderData) {
-        return $this->marketing->post("lists/" . $_ENV['MAILCHIMP_AUDIENCE_ID'] . "/members", [
-            'email_address' => $senderData['email'],
-            'status' => 'subscribed',
-            'merge_fields' => [
-                'FNAME' => $senderData['first_name'] ?? '',
-                'LNAME' => $senderData['last_name'] ?? ''
-            ],
-            'tags' => ['postcard-sender', 'cc0-postcards']
-        ]);
-    }
-    
+
     private function calculateDeliveryEstimate($sendDateString) {
         $sendDate = new DateTime($sendDateString);
-        $businessDays = 4; // Conservative estimate
-        
+        $businessDays = 4;
+
         $deliveryDate = clone $sendDate;
         $added = 0;
-        
+
         while ($added < $businessDays) {
             $deliveryDate->add(new DateInterval('P1D'));
-            if ($deliveryDate->format('N') < 6) { // Monday = 1, Sunday = 7
+            if ($deliveryDate->format('N') < 6) {
                 $added++;
             }
         }
-        
+
         return $deliveryDate->format('F j, Y');
     }
 }

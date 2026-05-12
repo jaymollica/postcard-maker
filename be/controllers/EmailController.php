@@ -14,10 +14,10 @@ class EmailController {
         }
         
         try {
-            require_once './services/MailchimpService.php';
-            $mailchimpService = new MailchimpService();
-            
-            $result = $mailchimpService->sendPostcardReceipt(
+            require_once './services/ResendService.php';
+            $emailService = new ResendService();
+
+            $result = $emailService->sendPostcardReceipt(
                 $data->postcardData ?? [],
                 $data->senderData ?? [],
                 $data->lobData ?? []
